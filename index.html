@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Zikr & Dua</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#c9a84c">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0d1117;--deep:#161b22;--card:#1c2128;--border:#30363d;
+  --gold:#c9a84c;--gold-lt:#e8d5a3;--gold-dim:rgba(201,168,76,0.15);
+  --pearl:#f0ece4;--mist:#8b949e;--soft:#6e7681;
+  --green:#2ea043;--red:#f85149;
+}
+html,body{height:100%;background:var(--ink);color:var(--pearl);font-family:'Inter',sans-serif;overflow-x:hidden}
+
+/* Stars */
+.stars{position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse at 15% 25%,rgba(201,168,76,0.05) 0%,transparent 55%),
+             radial-gradient(ellipse at 85% 75%,rgba(13,17,23,0.8) 0%,transparent 60%)}
+.stars::before{content:'';position:absolute;inset:0;
+  background-image:
+    radial-gradient(1px 1px at 8% 12%,rgba(201,168,76,0.6) 0%,transparent 100%),
+    radial-gradient(1px 1px at 22% 4%,rgba(255,255,255,0.3) 0%,transparent 100%),
+    radial-gradient(1px 1px at 48% 18%,rgba(255,255,255,0.2) 0%,transparent 100%),
+    radial-gradient(1px 1px at 70% 8%,rgba(201,168,76,0.4) 0%,transparent 100%),
+    radial-gradient(1px 1px at 88% 16%,rgba(255,255,255,0.3) 0%,transparent 100%),
+    radial-gradient(1px 1px at 12% 42%,rgba(255,255,255,0.15) 0%,transparent 100%),
+    radial-gradient(1px 1px at 92% 50%,rgba(201,168,76,0.3) 0%,transparent 100%),
+    radial-gradient(1px 1px at 35% 88%,rgba(255,255,255,0.2) 0%,transparent 100%),
+    radial-gradient(1px 1px at 62% 72%,rgba(201,168,76,0.25) 0%,transparent 100%),
+    radial-gradient(1px 1px at 3%  95%,rgba(255,255,255,0.15) 0%,transparent 100%)}
+
+/* App shell */
+.app{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;max-width:480px;margin:0 auto;padding-bottom:64px}
+
+/* Top bar */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:6px 20px 4px}
+.bismillah{font-family:'Amiri',serif;font-size:15px;color:var(--gold);opacity:.85;direction:rtl}
+.topbar-btns{display:flex;gap:8px;align-items:center}
+.lang-btn{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:5px 10px;
+  font-size:11px;color:var(--mist);cursor:pointer;letter-spacing:.05em;transition:all .2s}
+.lang-btn:hover{color:var(--pearl);border-color:var(--gold)}
+.sound-btn{background:var(--card);border:1px solid var(--border);border-radius:8px;
+  width:30px;height:28px;font-size:13px;cursor:pointer;transition:all .2s;
+  display:flex;align-items:center;justify-content:center}
+.sound-btn:hover{border-color:var(--gold)}
+.sound-btn.on{border-color:var(--gold);background:rgba(201,168,76,.12)}
+
+/* Nav tabs */
+.nav{display:flex;border-bottom:1px solid var(--border);background:var(--deep)}
+.nav-btn{flex:1;padding:9px 8px;background:none;border:none;color:var(--mist);
+  font-size:13px;font-family:'Inter',sans-serif;cursor:pointer;transition:all .2s;
+  border-bottom:2px solid transparent;letter-spacing:.03em}
+.nav-btn.active{color:var(--gold);border-bottom-color:var(--gold)}
+.nav-icon{font-size:18px;display:block;margin-bottom:3px}
+
+/* Pages */
+.page{display:none;flex:1;flex-direction:column;padding:10px 16px 20px;overflow-y:auto}
+.page.active{display:flex}
+
+/* ── TASBIH page ── */
+.dhikr-select-btn{display:flex;align-items:center;justify-content:center;gap:10px;
+  width:100%;background:var(--card);border:1px solid var(--gold);border-radius:14px;
+  padding:8px 18px;margin-bottom:10px;cursor:pointer;transition:all .2s}
+.dhikr-select-btn:hover{background:rgba(201,168,76,.08)}
+.dhikr-select-btn span#dhikrSelectLabel{font-family:'Amiri',serif;font-size:17px;color:var(--gold-lt);direction:rtl;text-align:center;flex:1}
+.dhikr-select-arrow{color:var(--gold);font-size:13px}
+
+/* Dhikr selector modal */
+.dhikr-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:300;
+  display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;
+  transition:opacity .25s}
+.dhikr-modal-overlay.show{opacity:1;pointer-events:auto}
+.dhikr-modal{background:var(--deep);border:1px solid var(--border);border-radius:20px 20px 0 0;
+  width:100%;max-width:480px;max-height:75vh;display:flex;flex-direction:column;
+  transform:translateY(100%);transition:transform .25s ease}
+.dhikr-modal-overlay.show .dhikr-modal{transform:translateY(0)}
+.dhikr-modal-header{display:flex;align-items:center;justify-content:space-between;
+  padding:18px 20px;border-bottom:1px solid var(--border);font-size:15px;color:var(--pearl);font-weight:500}
+.dhikr-modal-close{background:var(--card);border:1px solid var(--border);border-radius:8px;
+  width:32px;height:32px;color:var(--mist);cursor:pointer;font-size:14px}
+.dhikr-modal-list{overflow-y:auto;padding:12px 14px 24px}
+.dhikr-modal-item{display:flex;flex-direction:column;gap:4px;background:var(--card);
+  border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:10px;
+  cursor:pointer;transition:all .2s}
+.dhikr-modal-item:hover{border-color:var(--gold)}
+.dhikr-modal-item.active{border-color:var(--gold);background:rgba(201,168,76,.1)}
+.dhikr-modal-item-name{font-size:12px;color:var(--mist);letter-spacing:.05em}
+.dhikr-modal-item-ar{font-family:'Amiri',serif;font-size:18px;color:var(--pearl);direction:rtl;text-align:right;line-height:1.5}
+
+.dhikr-box{text-align:center;background:var(--card);border:1px solid var(--border);
+  border-radius:14px;padding:10px 16px;margin-bottom:10px}
+.d-arabic{font-family:'Amiri',serif;font-size:clamp(20px,5.5vw,28px);color:var(--pearl);
+  line-height:1.5;direction:rtl;margin-bottom:6px}
+.d-trans{font-size:12px;color:var(--mist);line-height:1.5}
+
+.counter-area{display:flex;flex-direction:column;align-items:center;margin-bottom:8px}
+.counter-wrap{position:relative;width:clamp(150px,36vw,185px);height:clamp(150px,36vw,185px)}
+.c-svg{width:100%;height:100%;transform:rotate(-90deg);pointer-events:none}
+.c-track{fill:none;stroke:rgba(255,255,255,0.06);stroke-width:7}
+.c-prog{fill:none;stroke:var(--gold);stroke-width:7;stroke-linecap:round;transition:stroke-dashoffset .25s ease}
+.tap-btn{position:absolute;inset:0;border-radius:50%;background:transparent;border:none;cursor:pointer;outline:none;-webkit-tap-highlight-color:transparent;z-index:10}
+.c-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;pointer-events:none}
+.c-num{font-size:clamp(36px,9vw,48px);font-weight:300;color:var(--pearl);line-height:1;letter-spacing:-3px;transition:transform .1s}
+.c-num.bump{transform:scale(1.1)}
+.c-of{font-size:12px;color:var(--mist)}
+.c-rounds{font-size:10px;color:var(--gold);letter-spacing:.06em}
+
+@keyframes ripple{0%{transform:scale(1);opacity:.5}100%{transform:scale(2.4);opacity:0}}
+.ripple-ring{position:absolute;inset:0;border-radius:50%;border:2px solid var(--gold);animation:ripple .5s ease-out forwards;pointer-events:none}
+
+.targets{display:flex;gap:6px;justify-content:center;margin-top:6px;flex-wrap:wrap}
+.tpill{background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:4px 12px;font-size:12px;color:var(--mist);cursor:pointer;transition:all .2s}
+.tpill.active{background:var(--gold-dim);border-color:var(--gold);color:var(--gold)}
+
+.ctrls{display:flex;gap:8px;justify-content:center;margin-top:8px}
+.ctrl{background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:7px 16px;font-size:12px;color:var(--mist);cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif}
+.ctrl:hover{color:var(--pearl)}
+.ctrl.rst{border-color:rgba(201,168,76,.3);color:var(--gold-lt)}
+
+.stats-bar{display:flex;gap:0;background:var(--card);border:1px solid var(--border);border-radius:12px;margin-top:8px;overflow:hidden}
+.stt{flex:1;text-align:center;padding:8px 8px}
+.stt+.stt{border-left:1px solid var(--border)}
+.stt-v{font-size:16px;font-weight:500;color:var(--pearl);display:block}
+.stt-l{font-size:9px;color:var(--soft);letter-spacing:.08em;text-transform:uppercase}
+
+/* ── DUA page ── */
+.cat-list{display:flex;flex-direction:column;gap:10px}
+.cat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:16px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:14px}
+.cat-card:hover{border-color:var(--gold);background:rgba(201,168,76,.05)}
+.cat-icon{font-size:28px;width:44px;text-align:center;flex-shrink:0}
+.cat-info{flex:1}
+.cat-name{font-family:'Amiri',serif;font-size:17px;color:var(--pearl);direction:rtl;margin-bottom:3px}
+.cat-count{font-size:11px;color:var(--mist)}
+.cat-arr{color:var(--gold);font-size:18px}
+.remind-btn{background:var(--gold-dim);border:1px solid rgba(201,168,76,.3);border-radius:10px;
+  padding:6px 10px;font-size:11px;color:var(--gold);cursor:pointer;white-space:nowrap;
+  flex-shrink:0;transition:all .2s}
+.remind-btn:hover{background:rgba(201,168,76,.25)}
+.remind-btn.on{background:var(--gold);color:var(--ink);font-weight:600}
+
+/* Dua detail */
+.dua-header{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.back-btn{background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:8px 12px;cursor:pointer;color:var(--mist);font-size:13px;transition:all .2s}
+.back-btn:hover{color:var(--pearl)}
+.dua-cat-title{font-family:'Amiri',serif;font-size:18px;color:var(--gold);direction:rtl}
+
+.dua-list{display:flex;flex-direction:column;gap:14px}
+.dua-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 16px}
+.dua-num{font-size:10px;color:var(--mist);letter-spacing:.1em;margin-bottom:10px;text-transform:uppercase}
+.dua-ar{font-family:'Amiri',serif;font-size:clamp(18px,5vw,24px);color:var(--pearl);
+  direction:rtl;text-align:right;line-height:1.8;margin-bottom:12px;
+  border-bottom:1px solid var(--border);padding-bottom:12px}
+.dua-trans{font-size:12px;color:var(--mist);line-height:1.7;margin-bottom:8px}
+.dua-trans+.dua-trans{margin-top:4px}
+.dua-translit{font-size:12px;color:var(--gold-lt);line-height:1.7;margin-bottom:10px;font-style:italic}
+.dua-count{display:inline-block;background:var(--gold-dim);color:var(--gold);border-radius:8px;padding:2px 10px;font-size:11px;margin-bottom:10px;letter-spacing:.04em}
+.dua-lang{font-size:10px;color:var(--soft);letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px}
+
+/* Telegram promo banner */
+.promo-banner{position:fixed;bottom:0;left:0;right:0;z-index:50;
+  max-width:480px;margin:0 auto;
+  display:flex;align-items:center;gap:12px;
+  background:linear-gradient(180deg, rgba(28,33,40,.97), rgba(13,17,23,.99));
+  border:none;border-top:1px solid rgba(201,168,76,.35);
+  padding:12px 18px;text-decoration:none;text-align:left;
+  cursor:pointer;font-family:'Inter',sans-serif;width:100%;
+  backdrop-filter:blur(8px);
+  transition:opacity .2s}
+.promo-banner:active{opacity:.85}
+.promo-icon{font-size:22px;flex-shrink:0}
+.promo-text{display:flex;flex-direction:column;gap:1px;min-width:0}
+.promo-title{font-size:13px;color:var(--pearl);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.promo-sub{font-size:11px;color:var(--gold);letter-spacing:.02em}
+
+/* Toast */
+.toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.85);
+  background:var(--deep);border:1px solid var(--gold);border-radius:20px;
+  padding:24px 28px;text-align:center;z-index:200;opacity:0;pointer-events:none;
+  transition:all .3s;box-shadow:0 0 50px rgba(201,168,76,.25);min-width:240px}
+.toast.show{opacity:1;transform:translate(-50%,-50%) scale(1);pointer-events:auto}
+.toast-icon{font-size:34px;margin-bottom:8px}
+.toast-t{font-family:'Amiri',serif;font-size:22px;color:var(--gold);direction:rtl;margin-bottom:4px}
+.toast-s{font-size:12px;color:var(--mist)}
+.toast-ok{margin-top:14px;background:var(--gold);color:var(--ink);border:none;
+  border-radius:10px;padding:8px 22px;font-size:13px;font-weight:600;cursor:pointer}
+
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="stars"></div>
+<div class="app">
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="bismillah">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</div>
+    <div class="topbar-btns">
+      <button class="sound-btn" id="soundBtn">🔇</button>
+      <button class="lang-btn" id="langBtn">RU</button>
+      <button class="sound-btn" id="privacyBtn" title="Privacy Policy">ⓘ</button>
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <nav class="nav">
+    <button class="nav-btn active" onclick="showPage('tasbih',this)">
+      <span class="nav-icon">📿</span>
+      <span id="navT">Зикр</span>
+    </button>
+    <button class="nav-btn" onclick="showPage('dua',this)">
+      <span class="nav-icon">📖</span>
+      <span id="navD">Дуа</span>
+    </button>
+  </nav>
+
+  <!-- ═══ TASBIH PAGE ═══ -->
+  <div class="page active" id="page-tasbih">
+    <button class="dhikr-select-btn" id="dhikrSelectBtn">
+      <span id="dhikrSelectLabel"></span>
+      <span class="dhikr-select-arrow">▾</span>
+    </button>
+
+    <div class="dhikr-box">
+      <div class="d-arabic" id="dArabic"></div>
+      <div class="d-trans" id="dTrans"></div>
+    </div>
+
+    <div class="counter-area">
+      <div class="counter-wrap" id="cwrap">
+        <button class="tap-btn" id="tapBtn"></button>
+        <svg class="c-svg" viewBox="0 0 200 200">
+          <circle class="c-track" cx="100" cy="100" r="86"/>
+          <circle class="c-prog"  cx="100" cy="100" r="86" id="cProg"/>
+        </svg>
+        <div class="c-inner">
+          <span class="c-num" id="cNum">0</span>
+          <span class="c-of" id="cOf">/ 33</span>
+          <span class="c-rounds" id="cRounds"></span>
+        </div>
+      </div>
+      <div class="targets" id="targetRow"></div>
+      <div class="ctrls">
+        <button class="ctrl" id="undoBtn">← Undo</button>
+        <button class="ctrl rst" id="resetBtn">Reset ↺</button>
+      </div>
+    </div>
+
+    <div class="stats-bar">
+      <div class="stt"><span class="stt-v" id="stTotal">0</span><span class="stt-l" id="stTL">Всего</span></div>
+      <div class="stt"><span class="stt-v" id="stRounds">0</span><span class="stt-l" id="stRL">Раундов</span></div>
+      <div class="stt"><span class="stt-v" id="stSess">0</span><span class="stt-l" id="stSL">Сессия</span></div>
+    </div>
+  </div>
+
+  <!-- ═══ DUA PAGE ═══ -->
+  <div class="page" id="page-dua">
+    <!-- Category list -->
+    <div id="duaCats" class="cat-list"></div>
+    <!-- Dua detail (hidden initially) -->
+    <div id="duaDetail" style="display:none;flex-direction:column">
+      <div class="dua-header">
+        <button class="back-btn" id="backBtn">← <span id="backLbl">Назад</span></button>
+        <div class="dua-cat-title" id="duaCatTitle"></div>
+      </div>
+      <div class="dua-list" id="duaList"></div>
+    </div>
+  </div>
+
+  <!-- Telegram promo banner -->
+  <button class="promo-banner" id="promoBanner">
+    <span class="promo-icon">📚</span>
+    <span class="promo-text">
+      <span class="promo-title" id="promoTitle">Қуръонро бо мо омӯзед</span>
+      <span class="promo-sub" id="promoSub">Канали Telegram · обуна шавед →</span>
+    </span>
+  </button>
+
+</div>
+
+<!-- Dhikr selector modal -->
+<div class="dhikr-modal-overlay" id="dhikrModalOverlay">
+  <div class="dhikr-modal">
+    <div class="dhikr-modal-header">
+      <span id="dhikrModalTitle">Выберите зикр</span>
+      <button class="dhikr-modal-close" id="dhikrModalClose">✕</button>
+    </div>
+    <div class="dhikr-modal-list" id="dhikrModalList"></div>
+  </div>
+</div>
+
+<!-- Channel picker modal -->
+<div class="dhikr-modal-overlay" id="channelModalOverlay">
+  <div class="dhikr-modal">
+    <div class="dhikr-modal-header">
+      <span>Telegram</span>
+      <button class="dhikr-modal-close" id="channelModalClose">✕</button>
+    </div>
+    <div class="dhikr-modal-list" id="channelModalList"></div>
+  </div>
+</div>
+
+<!-- Privacy policy modal -->
+<div class="dhikr-modal-overlay" id="privacyModalOverlay">
+  <div class="dhikr-modal">
+    <div class="dhikr-modal-header">
+      <span>Privacy Policy</span>
+      <button class="dhikr-modal-close" id="privacyModalClose">✕</button>
+    </div>
+    <div class="dhikr-modal-list" style="padding:18px 20px;direction:ltr;text-align:left">
+      <p style="font-size:13px;color:#8b949e;margin-bottom:16px">Zikr & Dua · Updated: June 2026</p>
+
+      <p style="font-size:14px;color:#cfcac0;line-height:1.7;margin-bottom:14px"><strong style="color:#e8d5a3">Summary:</strong> Zikr & Dua does not collect, store, or transmit any personal data. All counter data is stored only on your device.</p>
+
+      <p style="font-size:14px;color:#e8d5a3;font-weight:600;margin-bottom:6px;margin-top:16px">1. Data we collect</p>
+      <p style="font-size:14px;color:#cfcac0;line-height:1.7;margin-bottom:14px">We do not collect any personal data — no name, phone number, email, or location.</p>
+
+      <p style="font-size:14px;color:#e8d5a3;font-weight:600;margin-bottom:6px;margin-top:16px">2. Local storage</p>
+      <p style="font-size:14px;color:#cfcac0;line-height:1.7;margin-bottom:14px">The app stores your dhikr counter, selected language, and sound setting only on your device. This data is never sent to any server and is deleted when you uninstall the app.</p>
+
+      <p style="font-size:14px;color:#e8d5a3;font-weight:600;margin-bottom:6px;margin-top:16px">3. Internet access</p>
+      <p style="font-size:14px;color:#cfcac0;line-height:1.7;margin-bottom:14px">The app connects to the internet only when you tap the Telegram banner to open an external Quran-learning channel. No data is shared during this.</p>
+
+      <p style="font-size:14px;color:#e8d5a3;font-weight:600;margin-bottom:6px;margin-top:16px">4. Permissions</p>
+      <p style="font-size:14px;color:#cfcac0;line-height:1.7;margin-bottom:14px">The app may use device vibration for haptic feedback while counting. This permission does not grant access to any personal data.</p>
+
+      <p style="font-size:14px;color:#e8d5a3;font-weight:600;margin-bottom:6px;margin-top:16px">5. Ads & analytics</p>
+      <p style="font-size:14px;color:#cfcac0;line-height:1.7;margin-bottom:14px">The app contains no advertising and uses no third-party analytics or ad SDKs.</p>
+
+      <p style="font-size:14px;color:#e8d5a3;font-weight:600;margin-bottom:6px;margin-top:16px">6. Children</p>
+      <p style="font-size:14px;color:#cfcac0;line-height:1.7;margin-bottom:14px">The app is suitable for all ages and collects no personal data, posing no privacy risk to children.</p>
+
+      <p style="font-size:14px;color:#e8d5a3;font-weight:600;margin-bottom:6px;margin-top:16px">7. Purpose</p>
+      <p style="font-size:14px;color:#cfcac0;line-height:1.7;margin-bottom:6px">Zikr & Dua is a free, non-commercial project (sadaqah jariyah) created to help Muslims with dhikr and dua. We do not sell data or monetize users.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <div class="toast-icon">✨</div>
+  <div class="toast-t">ما شاء الله</div>
+  <div class="toast-s" id="toastS"></div>
+  <button class="toast-ok" id="toastOk">Continue →</button>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+//  DATA
+// ══════════════════════════════════════════════════════
+const LANGS = ['RU','EN','TJ','UZ'];
+let langIdx = 0;
+
+const UI = {
+  navT:   ['Зикр','Dhikr','Зикр','Zikr'],
+  navD:   ['Дуа','Dua','Дуо','Duo'],
+  stTL:   ['Всего','Total','Ҷамъ','Jami'],
+  stRL:   ['Раундов','Rounds','Давра','Davra'],
+  stSL:   ['Сессия','Session','Сессия','Sessiya'],
+  backLbl:['Назад','Back','Бозгашт','Orqaga'],
+  dhikrModalTitle:['Выберите зикр','Choose dhikr','Зикрро интихоб кунед','Zikrni tanlang'],
+};
+
+const DHIKR = [
+  {
+    ar:'سُبْحَانَ اللَّهِ',
+    short:['Тасбих','Tasbih','Тасбех','Tasbih'],
+    trans:['Пречист Аллах','Glory be to Allah','Пок аст Аллоҳ','Alloh pokdir'],
+    defaultTarget:33,
+  },
+  {
+    ar:'الْحَمْدُ لِلَّهِ',
+    short:['Тахмид','Tahmid','Таҳмид','Tahmid'],
+    trans:['Хвала Аллаху','All praise is due to Allah','Ситоиш барои Аллоҳ','Hamd Allohga xosdir'],
+    defaultTarget:33,
+  },
+  {
+    ar:'اللَّهُ أَكْبَرُ',
+    short:['Такбир','Takbir','Такбир','Takbir'],
+    trans:['Аллах Велик','Allah is the Greatest','Аллоҳ Бузургтарин аст','Alloh buyukdir'],
+    defaultTarget:33,
+  },
+  {
+    ar:'أَسْتَغْفِرُ اللَّهَ',
+    short:['Истигфар','Istighfar','Истиғфор','Istighfor'],
+    trans:['Прошу прощения у Аллаха','I seek forgiveness from Allah','Аз Аллоҳ бахшоиш металабам','Allohdan gunohlarim uchun kechirim so\'rayman'],
+    defaultTarget:100,
+  },
+  {
+    ar:'لَا إِلَٰهَ إِلَّا اللَّهُ',
+    short:['Тахлиль','Tahlil','Таҳлил','Tahlil'],
+    trans:['Нет божества, достойного поклонения, кроме Аллаха','There is no god worthy of worship except Allah','Нест худое сазовори ибодат, ба ғайри Аллоҳ','Allohdan o\'zga iloh yo\'q'],
+    defaultTarget:33,
+  },
+  {
+    ar:'لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ',
+    short:['Хаукаля','Haukala','Ҳавқала','Havqala'],
+    trans:['Нет силы и мощи ни у кого, кроме Аллаха','There is no power and no strength except with Allah','Нест қувват ва тавоное магар аз Аллоҳ','Kuch-quvvat faqat Allohdandir'],
+    defaultTarget:11,
+  },
+  {
+    ar:'اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ',
+    short:['Салават','Salawat','Салавот','Salovot'],
+    trans:['О Аллах, благослови Мухаммада ﷺ','O Allah, send blessings upon Muhammad ﷺ','Эй Аллоҳ, бар Муҳаммад ﷺ дуруд фирист','Ey Alloh, Muhammadga ﷺ rahmat yubor'],
+    defaultTarget:100,
+  },
+  {
+    ar:'لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ، وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ',
+    short:['','','',''],
+    trans:['Нет божества, кроме Аллаха Одного, нет у Него сотоварища, Ему власть и хвала, Он над всем властен','There is no god but Allah alone, with no partner; to Him belongs dominion and praise, and He is able to do all things','Нест худое ба ғайри Аллоҳ, Ягона аст, шарике надорад, мулк ва ситоиш аз они Ӯст, ва Ӯ бар ҳама чиз тавоност','Allohdan o\'zga iloh yo\'q, U yagonadir, sherigi yo\'qdir, mulk va hamd Unga xosdir, U hamma narsaga qodirdir'],
+    defaultTarget:11,
+  },
+  {
+    ar:'سُبْحَانَ اللَّهِ وَبِحَمْدِهِ',
+    short:['Лучшие слова','Best words','Беҳтарин калимаҳо','Eng yaxshi so\'zlar'],
+    trans:['Пречист Аллах, и хвала Ему. Эти слова — самые любимые Аллахом из всех слов.','Glory be to Allah, and praise be to Him. These are the words most beloved to Allah of all speech.','Пок аст Аллоҳ ва ситоиш барои Ӯст. Ин калимот аз ҳама гуфтор назди Аллоҳ маҳбубтаранд.','Alloh pokdir va hamd Unga xosdir. Bu so\'zlar Alloh nazdida eng sevimli so\'zlardir.'],
+    defaultTarget:100,
+  },
+  {
+    ar:'سُبْحَانَ اللَّهِ وَبِحَمْدِهِ، سُبْحَانَ اللَّهِ الْعَظِيمِ',
+    short:['Тяжёлые на Весах','Heavy on the Scale','Вазнин дар Тарозу','Tarozida og\'ir'],
+    trans:['Пречист Аллах, и хвала Ему. Пречист Аллах Великий. Эти слова тяжелы на Весах и любимы Милостивым.','Glory be to Allah, and praise be to Him. Glory be to Allah, the Mighty. These words are heavy on the Scale and beloved to the Most Merciful.','Пок аст Аллоҳ ва ситоиш барои Ӯст. Пок аст Аллоҳи Бузург. Ин калимот дар Тарозу вазнинанд ва назди Раҳмон маҳбубанд.','Alloh pokdir va hamd Unga xosdir. Buyuk Alloh pokdir. Bu so\'zlar Tarozida og\'ir va Rahmonga sevimlidir.'],
+    defaultTarget:33,
+  },
+  {
+    ar:'لَا إِلَهَ إِلَّا أَنْتَ سُبْحَانَكَ إِنِّي كُنْتُ مِنَ الظَّالِمِينَ',
+    short:['Дуа Юнуса','Dua of Yunus','Дуои Юнус','Yunus duosi'],
+    trans:['Нет божества, кроме Тебя! Пречист Ты! Поистине, я был одним из несправедливых к себе. (Дуа пророка Юнуса в чреве кита)','There is no god but You! Glory be to You! Indeed, I was among the wrongdoers. (Dua of Prophet Yunus in the belly of the whale)','Нест худое ба ғайри Ту! Пок ҳастӣ Ту! Ба дурустӣ, ман аз ситамкорон будам. (Дуои Пайғамбар Юнус дар шиками моҳӣ)','Sendan o\'zga iloh yo\'q! Sen pokdirsan! Darhaqiqat, men o\'zimga zulm qilganlardan bo\'ldim. (Yunus alayhissalomning baliq qornidagi duosi)'],
+    defaultTarget:11,
+  },
+  {
+    ar:'حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيلُ',
+    short:['При тревоге','When anxious','Ҳангоми ташвиш','Tashvishlanganda'],
+    trans:['Достаточно нам Аллаха, и Он лучший Покровитель.','Allah is sufficient for us, and He is the best Disposer of affairs.','Аллоҳ моро кофист, ва Ӯ беҳтарин Вокил аст.','Alloh bizga kifoya qiladi, U eng yaxshi himoyachidir.'],
+    defaultTarget:11,
+  },
+  {
+    ar:'يَا مُقَلِّبَ الْقُلُوبِ ثَبِّتْ قَلْبِي عَلَى دِينِكَ',
+    short:['Для сердца','For the heart','Барои дил','Qalb uchun'],
+    trans:['О Изменяющий сердца, укрепи моё сердце в Твоей религии.','O Changer of hearts, make my heart firm upon Your religion.','Эй Дилгардон, дили маро бар дини Ту устувор гардон.','Ey qalblarni o\'giruvchi, qalbimni diningda mustahkam qilgin.'],
+    defaultTarget:11,
+  },
+  {
+    ar:'اللَّهُمَّ اغْفِرْ لِي وَارْحَمْنِي وَأَلْحِقْنِي بِالرَّفِيقِ الْأَعْلَى',
+    short:['Дуа Пророка ﷺ','Dua of the Prophet ﷺ','Дуои Пайғамбар ﷺ','Payg\'ambar duosi ﷺ'],
+    trans:['О Аллах, прости меня, помилуй меня и присоедини меня к высшему обществу! (Последние слова Пророка ﷺ)','O Allah, forgive me, have mercy on me, and join me with the highest companions! (The last words of the Prophet ﷺ)','Эй Аллоҳ, маро биёмурз, ба ман раҳм кун ва маро ба ҳамроҳони олӣ мулҳақ гардон!','Ey Alloh, meni kechirgin, menga rahm qilgin va meni eng oliy hamrohlarga qo\'shgin! (Payg\'ambarning ﷺ so\'nggi so\'zlari)'],
+    defaultTarget:11,
+  },
+  {
+    ar:'رَبِّ اجْعَلْنِي مُقِيمَ الصَّلَاةِ وَمِنْ ذُرِّيَّتِي',
+    short:['Постоянство в намазе','Steadfast in prayer','Бардавомӣ дар намоз','Namozda barqarorlik'],
+    trans:['Господь мой, сделай меня и моё потомство теми, кто совершает намаз постоянно. (Сура «Ибрахим», 14:40)','My Lord, make me one who maintains prayer, and [many] from my descendants. (Surah Ibrahim, 14:40)','Парвардигорам, маро ва насли маро аз касоне гардон, ки намозро бардавом мехонанд.','Robbim, meni va zurriyotimdan ba\'zilarini namozni doimo o\'qiydiganlardan qilgin. (Ibrohim surasi, 14:40)'],
+    defaultTarget:11,
+  },
+];
+
+const TARGETS = [11,33,77,100,1000];
+
+const DUA_CATS = [
+  {
+    icon:'🌅',
+    name:'أذكار الصباح',
+    nameL:['Утренние азкары','Morning Adhkar','Азкори субҳ','Ertalabki azkorlar'],
+    duas:[
+      {
+        ar:'اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ خَلَقْتَنِي وَ أَنَا عَبْدُكَ وَ أَنَا عَلَى عَهْدِكَ وَ وَعْدِكَ مَا اسْتَطَعْتُ أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ وَ أَبُوءُ بِذَنْبِي فَاغْفِرْ لِي فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ',
+        translit:['Аллахумма, анта Рабби, ля иляха илля Анта, халякта-ни ва ана \'абду-кя, ва ана \'аля \'ахди-кя ва ва\'ди-кя ма-стата\'ту. А\'узу би-кя мин шарри ма сана\'ту, абу\'у ля-кя би-ни\'мати-кя \'аляййя, ва абу\'у би-занби, фа-гфир ли, фа-инна-ху ля йагфи-ру-з-зунуба илля Анта!','Allahumma, anta Rabbi, la ilaha illa Anta, khalaqtani wa ana \'abduka, wa ana \'ala \'ahdika wa wa\'dika mastata\'tu. A\'uzu bika min sharri ma sana\'tu, abu\'u laka bini\'matika \'alayya, wa abu\'u bizanbi, faghfir li, fa-innahu la yaghfiru-z-zunuba illa Anta!','Аллоҳумма, анта Раббӣ, ло илоҳа илло Анта, халақтанӣ ва ана абдука, ва ана ало аҳдика ва ваъдика мастатаъту. Аъузу бика мин шарри мо санаъту, абуъу лака бинимматика алайя, ва абуъу бизанбӣ, фағфирлӣ, фаиннаҳу ло яғфируз-зунуба илло Анта!','Allohumma, anta Robbiy, lo iloha illo Anta, xalaqtaniy va ana abduka, va ana alo ahdika va vadika mastatatu. Auzu bika min sharri mo sanatu, abuu laka binimatika alayya, va abuu bizanbiy, fag\'firliy, fa-innahu lo yag\'firuz-zunuba illo Anta!'],
+        ru:'О Аллах, Ты — Господь мой, и нет достойного поклонения, кроме Тебя, Ты создал меня, а я — Твой раб, и я буду хранить верность Тебе, пока у меня хватит сил. Прибегаю к Тебе от зла того, что я сделал, признаю милость, оказанную Тобой мне, и признаю грех свой. Прости же меня, ибо, поистине, никто не прощает грехов, кроме Тебя! (Бухари)',
+        en:'O Allah, You are my Lord, there is no god but You. You created me and I am Your servant, and I remain true to my covenant with You as best I can. I seek refuge in You from the evil of what I have done. I acknowledge Your favor upon me, and I acknowledge my sin, so forgive me, for none forgives sins except You. (Bukhari)',
+        tj:'Эй Аллоҳ, Ту Парвардигори ман ҳастӣ, нест худое ба ғайри Ту. Ту маро офаридӣ ва ман бандаи Ту ҳастам, ва ман дар аҳду паймони Ту то ҳадди тавонам устоворам. Аз бадии амалам ба Ту паноҳ мебарам, неъмати Туро бар худ иқрор мекунам ва гунохамро эътироф мекунам, пас маро биёмурз, зеро ҳеч кас гунохҳоро намебахшад магар Ту! (Бухорӣ)',
+        uz:'Ey Alloh, Sen mening Rabbimsan, Sendan o\'zga iloh yo\'q. Sen meni yaratding va men Sening bandangman, men qodirim boricha Senga bergan ahdimda turaman. Qilgan ishlarimning yomonligidan Senga sig\'inaman, menga bergan ne\'matlaringni tan olaman va gunohimni tan olaman, meni kechirgin, chunki gunohlarni faqat Sen kechirasan! (Buxoriy)',
+      },
+      {
+        ar:'لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ ، لَهُ الْمُلْكُ وَ لَهُ الْحَمْدُ وَ هُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ',
+        translit:['Ля иляха илля-Ллаху вахда-ху ля шарика ля-ху, ля-ху-ль-мульку ва ля-ху-ль-хамду ва хуа \'аля кулли шайин кадир.','La ilaha illa-Llahu wahdahu la sharika lahu, lahu-l-mulku wa lahu-l-hamdu wa hua \'ala kulli shay\'in qadir.','Ло илоҳа илло-Лллоҳу ваҳдаҳу ло шарика лаҳу, лаҳу-л-мулку ва лаҳу-л-ҳамду ва ҳуа ало кулли шайин қодир.','Lo iloha illo-Lllohu vahdahu lo sharika lahu, lahu-l-mulku va lahu-l-hamdu va hua alo kulli shayin qodir.'],
+        count:'10 раз',
+        ru:'Нет достойного поклонения, кроме одного лишь Аллаха, у которого нет сотоварища, Ему принадлежит владычество, Ему хвала, Он всё может. (Ахмад)',
+        en:'There is no god but Allah alone, with no partner. To Him belongs all dominion and all praise, and He is able to do all things. (Ahmad)',
+        tj:'Нест худое ба ғайри Аллоҳ, Ягона аст, шарике надорад, мулк аз они Ӯст ва ситоиш ба Ӯст, ва Ӯ бар ҳама чиз тавоност. (Аҳмад)',
+        uz:'Allohdan o\'zga iloh yo\'q, U yagonadir, sherigi yo\'qdir, mulk Unga xosdir va hamd Unga xosdir, U hamma narsaga qodirdir. (Ahmad)',
+      },
+      {
+        ar:'سُبْحَانَ اللَّهِ وَ بِحَمْدِهِ',
+        translit:['Субхана-Ллахи ва би-хамди-хи.','Subhana-Llahi wa bi-hamdi-hi.','Субҳона-Лллоҳи ва би-ҳамди-ҳи.','Subhona-Lllohi va bi-hamdi-hi.'],
+        count:'100 раз',
+        ru:'Пречист Аллах и хвала Ему. (Муслим)',
+        en:'Glory be to Allah and praise be to Him. (Muslim)',
+        tj:'Пок аст Аллоҳ ва ситоиш барои Ӯст. (Муслим)',
+        uz:'Alloh pokdir va hamd Unga xosdir. (Muslim)',
+      },
+      {
+        ar:'أَصْبَحْنَا وَ أَصْبَحَ الْمُلْكُ لِلَّهِ ، وَ الْحَمْدُ لِلَّهِ ، لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ ، لَهُ الْمُلْكُ وَ لَهُ الْحَمْدُ وَ هُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ ، رَبِّ أَسْأَلُكَ خَيْرَ مَا فِي هَذَا الْيَوْمِ وَ خَيْرَ مَا بَعْدَهُ وَ أَعُوذُ بِكَ مِنْ شَرِّ مَا فِي هَذَا الْيَوْمِ وَ شَرِّ مَا بَعْدَهُ رَبِّ أَعُوذُ بِكَ مِنَ الْكَسَلِ وَ سُوءِ الْكِبَرِ ، رَبِّ أَعُوذُ بِكَ مِنْ عَذَابٍ فِي النَّارِ وَ عَذَابٍ فِي الْقَبْرِ',
+        translit:['Асбахна ва асбаха-ль-мульку ли-Лляхи ва-ль-хамду ли-Лляхи, ля иляха илля Ллаху вахда-ху ля шарика ля-ху, ля-ху-ль-мульку ва ля-ху-ль-хамду ва хуа аля кулли шайин кадирун. Рабби, ас\'алю-кя хайра ма фи хаза-ль-йауми ва хайра ма ба\'да-ху ва а\'узу би-кя мин шарри ма фи хаза-ль-йауми ва шарри ма ба\'да-ху! Рабби, а\'узу би-кя мин аль-кясали ва суи-ль-кибари, Рабби, а\'узу би-кя мин \'азабин фи-н-нари ва \'азабин фи-ль-кабри!','Asbahna wa asbaha-l-mulku li-Llahi wa-l-hamdu li-Llahi, la ilaha illa Llahu wahdahu la sharika lahu, lahu-l-mulku wa lahu-l-hamdu wa hua \'ala kulli shay\'in qadir. Rabbi, as\'aluka khayra ma fi hadha-l-yawmi wa khayra ma ba\'dahu wa a\'uzu bika min sharri ma fi hadha-l-yawmi wa sharri ma ba\'dahu! Rabbi, a\'uzu bika min al-kasali wa su\'i-l-kibari, Rabbi, a\'uzu bika min \'adhabin fi-n-nari wa \'adhabin fi-l-qabri!','Асбаҳно ва асбаҳа-л-мулку ли-Лллоҳи ва-л-ҳамду ли-Лллоҳи, ло илоҳа илло Лллоҳу ваҳдаҳу ло шарика лаҳу, лаҳу-л-мулку ва лаҳу-л-ҳамду ва ҳуа ало кулли шайин қодирун. Раббӣ, асъалука хайра мо фи ҳаза-л-явми ва хайра мо баъдаҳу ва аъузу бика мин шарри мо фи ҳаза-л-явми ва шарри мо баъдаҳу! Раббӣ, аъузу бика мин ал-касали ва суи-л-кибари, Раббӣ, аъузу бика мин азобин фи-н-нори ва азобин фи-л-қабри!','Asbahna va asbaha-l-mulku li-Lllohi va-l-hamdu li-Lllohi, lo iloha illo Lllohu vahdahu lo sharika lahu, lahu-l-mulku va lahu-l-hamdu va hua alo kulli shayin qodirun. Robbiy, asaluka xayra mo fi haza-l-yavmi va xayra mo badahu va auzu bika min sharri mo fi haza-l-yavmi va sharri mo badahu! Robbiy, auzu bika min al-kasali va sui-l-kibari, Robbiy, auzu bika min azobin fi-n-nori va azobin fi-l-qabri!'],
+        ru:'Мы дожили до утра, и этим утром владычество принадлежит Аллаху и хвала Аллаху, нет достойного поклонения, кроме одного лишь Аллаха, у которого нет сотоварища. Ему принадлежит владычество, Ему хвала, Он всё может. Господь мой, прошу Тебя о благе того, что будет в этот день, и благе того, что за ним последует, и прибегаю к Тебе от зла того, что будет в этот день, и зла того, что за ним последует. Господь мой, прибегаю к Тебе от нерадения и старческой дряхлости, Господь мой, прибегаю к Тебе от мучений в огне и мучений в могиле! (Муслим)',
+        en:'We have reached the morning, and at this very hour all dominion belongs to Allah. There is no god but Allah alone, with no partner. To Him belongs all dominion and all praise, and He is able to do all things. My Lord, I ask You for the good of this day and the good that follows it, and I seek refuge in You from the evil of this day and the evil that follows it. My Lord, I seek refuge in You from laziness and feeble old age. My Lord, I seek refuge in You from punishment in the Fire and punishment in the grave. (Muslim)',
+        tj:'Мо ба субҳ расидем, ва дар ин субҳ мулк аз они Аллоҳ аст ва ситоиш Аллоҳро, нест худое ба ғайри Аллоҳ, шарике надорад. Мулк аз они Ӯст ва ситоиш ба Ӯст, ва Ӯ бар ҳама чиз тавоност. Парвардигори ман, аз Ту хайри ин рӯзро ва хайри баъд аз онро мехоҳам, ва аз бадии ин рӯз ва бадии баъд аз он ба Ту паноҳ мебарам. Парвардигори ман, аз карахтӣ ва пирии бад ба Ту паноҳ мебарам, аз азоби оташ ва азоби қабр ба Ту паноҳ мебарам! (Муслим)',
+        uz:'Biz tongga yetib keldik, va shu tongda mulk Allohga xosdir va hamd Allohga xosdir, Allohdan o\'zga iloh yo\'q, sherigi yo\'qdir. Mulk Unga xosdir va hamd Unga xosdir, U hamma narsaga qodirdir. Robbim, Sendan bu kunning yaxshiligini va undan keyingi yaxshilikni so\'rayman, bu kunning yomonligidan va undan keyingi yomonlikdan Senga sig\'inaman. Robbim, dangasalik va yomon qarilikdan Senga sig\'inaman, do\'zax azobidan va qabr azobidan Senga sig\'inaman! (Muslim)',
+      },
+      {
+        ar:'اللَّهُمَّ بِكَ أَصْبَحْنَا وَبِكَ أَمْسَيْنَا وَبِكَ نَحْيَا وَبِكَ نَمُوتُ وَإِلَيْكَ النُّشُورُ',
+        translit:['Аллахумма, би-кя асбахна, ва би-кя амсайна, ва би-кя нахйа, ва би-кя намуту ва иляй-кя-н-нушуру.','Allahumma, bika asbahna, wa bika amsayna, wa bika nahya, wa bika namutu wa ilayka-n-nushur.','Аллоҳумма, бика асбаҳно, ва бика амсайно, ва бика наҳё, ва бика намуту ва илайка-н-нушур.','Allohumma, bika asbahna, va bika amsayna, va bika nahyo, va bika namutu va ilayka-n-nushur.'],
+        ru:'О Аллах, благодаря Тебе мы дожили до утра и благодаря Тебе мы дожили до вечера, Ты даёшь нам жизнь, и Ты лишаешь нас её и Ты воскресишь нас для отчета. (Ахмад, Абу Дауд, Ат-Тирмизи)',
+        en:'O Allah, by You we have reached the morning, and by You we reach the evening; by You we live and by You we die, and to You is the return. (Ahmad, Abu Dawud, At-Tirmidhi)',
+        tj:'Эй Аллоҳ, ба воситаи Ту мо субҳ кардем ва ба воситаи Ту шом мекунем, бо Ту зиндаем ва бо Ту мемирем, ва бозгашт назди Туст. (Аҳмад, Абу Довуд, Тирмизӣ)',
+        uz:'Ey Alloh, Sening bilan tongga yetdik va Sening bilan kechga yetamiz, Sening bilan yashaymiz va Sening bilan o\'lamiz, qaytish Sengadir. (Ahmad, Abu Dovud, Tirmiziy)',
+      },
+      {
+        ar:'بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَ لَا فِي السَّمَاءِ وَ هُوَ السَّمِيعُ الْعَلِيمُ',
+        translit:['Би-сми-Лляхи аллязи ля йадурру ма\'а исми-хи шайун фи-ль-арди ва ля фи-с-самаи ва хуа-с-Сами\'у-ль-\'Алиму.','Bismi-Llahi-l-ladhi la yadurru ma\'a ismihi shay\'un fi-l-ardi wa la fi-s-sama\'i wa huwa-s-Sami\'u-l-\'Alim.','Бисми-Лллоҳи аллазӣ ло ядурру маъа исмиҳи шайъун фи-л-арзи ва ло фи-с-самои ва ҳуа-с-Самиъу-л-Алим.','Bismi-Lllohi-l-ladi lo yadurru maa ismihi shayun fi-l-arzi va lo fi-s-samoi va huva-s-Samiu-l-Alim.'],
+        count:'3 раза',
+        ru:'С именем Аллаха, с именем которого ничто не причинит вред ни на земле, ни на небе, ведь Он — Слышащий, Знающий! (Ахмад, Ат-Тирмизи)',
+        en:'In the name of Allah, with whose name nothing on earth or in heaven can cause harm, and He is the All-Hearing, the All-Knowing. (Ahmad, At-Tirmidhi)',
+        tj:'Бо номи Аллоҳ, ки бо номи Ӯ ҳеч чиз дар замин ва дар осмон зарар намерасонад, ва Ӯ Шунаво ва Доност! (Аҳмад, Тирмизӣ)',
+        uz:'Allohning nomi bilan, Uning nomi bilan yerda va osmonda hech narsa zarar yetkazmaydi, U Eshituvchi va Biluvchidir! (Ahmad, Tirmiziy)',
+      },
+      {
+        ar:'اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَافِيَةَ فِي الدُّنْيَا وَ الْآخِرَةِ ، اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَفْوَ وَ الْعَافِيَةَ فِي دِينِي وَ دُنْيَايَ وَ أَهْلِي وَ مَالِي ، اللَّهُمَّ اسْتُرْ عَوْرَاتِي، وَآمِنْ رَوْعَاتِي ، اللَّهُمَّ احْفَظْنِي مِنْ بَيْنِ يَدَيَّ وَ مِنْ خَلْفِي وَ عَنْ يَمِينِي وَ عَنْ شِمَالِي وَ مِنْ فَوْقِي وَ أَعُوذُ بِعَظَمَتِكَ أَنْ أُغْتَالَ مِنْ تَحْتِي',
+        translit:['Аллахумма, инни ас\'алю-кя-ль-\'афийата фи-д-дунья ва-ль-ахирати, Аллахумма, инни ас\'алю-кя-ль-\'афуа ва-ль-\'афийата фи дини, ва ду-ньяйа, ва ахли, ва мали. Аллахумма-стур \'аурати ва-эмин рау\'ати, Аллахумма-хфаз-ни мин байни йадаййа, ва мин хальфи, ва \'ан ямини, ва \'ан шимали ва мин фауки, ва а\'узу би-\'азамати-кя ан угталя мин тахти!','Allahumma, inni as\'aluka-l-\'afiyata fi-d-dunya wa-l-akhirati, Allahumma, inni as\'aluka-l-\'afwa wa-l-\'afiyata fi dini, wa dunyaya, wa ahli, wa mali. Allahumma-stur \'awrati wa-amin raw\'ati, Allahumma-hfazni min bayni yadayya, wa min khalfi, wa \'an yamini, wa \'an shimali wa min fawqi, wa a\'uzu bi-\'azamatika an ughtala min tahti!','Аллоҳумма, инни асалука-л-офията фи-д-дунё ва-л-охирати, Аллоҳумма, инни асалука-л-афва ва-л-офията фи динаш, ва дуньёяи, ва аҳлаш, ва молаш. Аллоҳумма-стур авротамро ва-омин равъатамро, Аллоҳумма-ҳфазнӣ мин байни ядайя, ва мин халфамро, ва ан яминамро, ва ан шимолаш ва мин фавқамро, ва аъузу би-азаматика ан уғтала мин таҳтамро!','Allohumma, inni asaluka-l-ofiyata fi-d-dunyo va-l-oxirati, Allohumma, inni asaluka-l-afva va-l-ofiyata fi dinida, va dunyoyoyi, va ahlida, va molida. Allohumma-stur avrotimni va-omin ravatimdan, Allohumma-hfazni min bayni yadayya, va min xalfimdan, va an yaminimdan, va an shimolida va min favqimdan, va auzu bi-azamatika an ug\'tala min tahtimdan!'],
+        ru:'О Аллах, поистине, я прошу Тебя о благополучии в мире этом и в мире ином. О Аллах, поистине, я прошу Тебя о прощении и благополучии в моей религии, и моих мирских делах, в моей семье и в моём имуществе. О Аллах, прикрой мою наготу и огради меня от страха, о Аллах, защити меня спереди, и сзади, и справа, и слева, и сверху, и я прибегаю к величию Твоему от того, чтобы быть предательски убитым снизу. (Ахмад, Абу Дауд)',
+        en:'O Allah, I ask You for well-being in this world and the next. O Allah, I ask You for forgiveness and well-being in my religion, my worldly affairs, my family and my wealth. O Allah, conceal my faults and keep me safe from fear. O Allah, protect me from in front of me, behind me, my right, my left, and above me, and I seek refuge in Your greatness from being taken unawares from beneath me. (Ahmad, Abu Dawud)',
+        tj:'Эй Аллоҳ, ба ростӣ ман аз Ту офияту саломатиро дар дунё ва охират мехоҳам. Эй Аллоҳ, аз Ту бахшоиш ва саломатиро дар дини худ, дунёи худ, аҳли худ ва моли худ мехоҳам. Эй Аллоҳ, нуқсонҷамеро бипӯшон ва аз тарс маро эмин гардон, эй Аллоҳ, маро аз пеш, аз пас, аз рост, аз чап ва аз боло нигоҳ дор, ва ба бузургии Ту паноҳ мебарам аз он ки аз зер ногаҳон гирифта шавам. (Аҳмад, Абу Довуд)',
+        uz:'Ey Alloh, albatta men Sendan bu dunyo va oxiratda salomatlik so\'rayman. Ey Alloh, Sendan dinimda, dunyoviy ishlarimda, oilamda va mol-mulkimda kechirim va salomatlik so\'rayman. Ey Alloh, kamchiliklarimni yashir va qo\'rquvdan meni omon qil, ey Alloh, meni oldimdan, ortimdan, o\'ngimdan, chapimdan va ustimdan saqla, va pastdan to\'satdan tutilishimdan Sening buyukligingga sig\'inaman. (Ahmad, Abu Dovud)',
+      },
+      {
+        ar:'اللَّهُمَّ عَالِمَ الْغَيْبِ وَ الشَّهَادَةِ ، فَاطِرَ السَّمَاوَاتِ وَ الْأَرْضِ ، رَبَّ كُلِّ شَيْءٍ وَ مَلِيكَهُ ، أَشْهَدُ أَنْ لَا إِلَهَ إِلَّا أَنْتَ أَعُوذُ بِكَ مِنْ شَرِّ نَفْسِي وَ مِنْ شَرِّ الشَّيْطَانِ وَ شِرْكِهِ وَ أَنْ أَقْتَرِفَ عَلَى نَفْسِي سُوءًا أَوْ أَجُرَّهُ إِلَى مُسْلِمٍ',
+        translit:['Аллахумма, \'Алима-ль-гайби ва-ш-шахадати, Фатира-с-самавати ва-ль-арди, Рабба кулли шайин ва Малика-ху, ашхаду алля иляха илля Анта, а\'узу би-кя мин шарри нафси, ва мин шарри-ш-шайтани ва ширки-хи ва ан актарифа \'аля нафси су\'ан ау аджурра-ху иля мусли-мин.','Allahumma, \'Alima-l-ghaybi wa-sh-shahadati, Fatira-s-samawati wa-l-ardi, Rabba kulli shay\'in wa Malikahu, ashhadu alla ilaha illa Anta, a\'uzu bika min sharri nafsi, wa min sharri-sh-shaytani wa shirkihi wa an aqtarifa \'ala nafsi su\'an aw ajurrahu ila muslim.','Аллоҳумма, Алиму-л-ғайби ва-ш-шаҳодати, Фотиру-с-самовоти ва-л-арзи, Раббаи кулли шайъин ва Моликаҳу, ашҳаду алло илоҳа илло Анта, аъузу бика мин шарри нафсӣ, ва мин шарри-ш-шайтони ва ширкиҳи ва ан актарифа ало нафсӣ суан ав аджурраҳу ило муслимин.','Allohumma, Alimu-l-g\'aybi va-sh-shahodati, Fotiru-s-samovoti va-l-arzi, Robbai kulli shayin va Molikahu, ashhadu allo iloha illo Anta, auzu bika min sharri nafsiy, va min sharri-sh-shaytoni va shirkihi va an aqtarifa alo nafsiy suan av ajurrahu ilo muslimin.'],
+        ru:'О Аллах, Знающий сокрытое и явное, Творец небес и земли, Господь и Владыка всего, свидетельствую, что нет достойного поклонения, кроме Тебя, прибегаю к Тебе от зла души своей, от зла и многобожия шайтана и от того, чтобы причинить зло самому себе или навлечь его на какого-нибудь мусульманина. (Ахмад, Ат-Тирмизи)',
+        en:'O Allah, Knower of the unseen and the seen, Creator of the heavens and the earth, Lord and Sovereign of all things, I bear witness that there is no god but You. I seek refuge in You from the evil of my own soul and from the evil and polytheism of Satan, and from bringing harm upon myself or upon any Muslim. (Ahmad, At-Tirmidhi)',
+        tj:'Эй Аллоҳ, Доно ба ниҳону ошкор, Офаринандаи осмонҳо ва замин, Парвардигор ва Соҳиби ҳама чиз, шоҳидӣ медиҳам, ки нест худое ба ғайри Ту, ба Ту паноҳ мебарам аз бадии нафси худ ва аз бадии шайтон ва шарики ӯ, ва аз он ки ба худам бадӣ расонам ё ба мусулмоне бирасонам. (Аҳмад, Тирмизӣ)',
+        uz:'Ey Alloh, yashirin va oshkorni Biluvchi, osmonlar va yerni Yaratuvchi, hamma narsaning Robbisi va Egasi, guvohlik beraman, Sendan o\'zga iloh yo\'q, o\'z nafsimning yomonligidan, shayton va uning sherigining yomonligidan, o\'zimga yoki biror musulmonga yomonlik qilishimdan Senga sig\'inaman. (Ahmad, Tirmiziy)',
+      },
+      {
+        ar:'أَصْبَحْنَا عَلَى فِطْرَةِ الْإِسْلَامِ وَ عَلَى كَلِمَةِ الْإِخْلَاصِ ، وَ عَلَى دِينِ نَبِيِّنَا مُحَمَّدٍ صَلَّى اللَّهُ عَلَيْهِ وَ سَلَّمَ وَ عَلَى مِلَّةِ أَبِينَا إِبْرَاهِيمَ حَنِيفاً مُسْلِماً وَ مَا كَانَ مِنَ الْمُشْرِكِينَ',
+        translit:['Асбахна \'аля фитрати-ль-ислями ва \'аля кялимати-ль-ихляси ва \'аля дини набиййина Мухаммадин, салля Ллаху \'аляйхи ва салляма, ва \'аля милляти аби-на Ибрахима ханифан мусликом ва ма кяна мин аль-мушрикина.','Asbahna \'ala fitrati-l-Islami wa \'ala kalimati-l-ikhlasi wa \'ala dini nabiyyina Muhammadin, salla-Llahu \'alayhi wa sallama, wa \'ala millati abina Ibrahima hanifan musliman wa ma kana min al-mushrikin.','Асбаҳно ало фитрати-л-Исломи ва ало калимати-л-ихлоси ва ало дини набиййино Муҳаммадин, салло-Лллоҳу алайҳи ва саллама, ва ало миллати абино Иброҳима ҳанифан мусулмонан ва мо кона мин ал-мушрикин.','Asbahna alo fitrati-l-Islomi va alo kalimati-l-ixlosi va alo dini nabiyyino Muhammadin, sallo-Lllohu alayhi va sallama, va alo millati abino Ibrohima hanifan musulmonan va mo kona min al-mushrikin.'],
+        ru:'Мы дожили до утра в лоне ислама согласно слову искренности, исповедуя религию нашего пророка Мухаммада, ﷺ, и религию нашего отца Ибрахима, который был ханифом и мусульманином и не относился к многобожникам. (Ахмад, Ад-Дарими)',
+        en:'We have reached the morning upon the natural disposition of Islam and upon the word of sincerity, and upon the religion of our Prophet Muhammad ﷺ, and upon the way of our father Ibrahim, who was upright and a Muslim, and was not among the polytheists. (Ahmad, Ad-Darimi)',
+        tj:'Мо ба субҳ расидем дар фитрати ислом ва бар калимаи ихлос, ва бар дини Пайғамбари мо Муҳаммад ﷺ, ва бар равиши падари мо Иброҳим, ки ҳаниф ва мусулмон буд ва аз мушрикон набуд. (Аҳмад, Дориммӣ)',
+        uz:'Biz Islom fitratida va ixlos kalimasida, Payg\'ambarimiz Muhammad ﷺ dinida va otamiz Ibrohimning yo\'lida tongga yetdik, u haniyf va musulmon edi va mushriklardan emas edi. (Ahmad, Doriymiy)',
+      },
+      {
+        ar:'رَضِيتُ بِاللَّهِ رَبًّا ، وَ بِالْإسْلَامِ دِيناً وَ بِمُحَمَّدٍ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ نَبِيًّا',
+        translit:['Радыйту би-Лляхи Раббан, ва би-ль-исляами динан ва би-Мухаммадин, салля-Ллаху \'аляйхи ва салляма, набиййан.','Radiytu bi-Llahi Rabban, wa bi-l-Islami dinan wa bi-Muhammadin, salla-Llahu \'alayhi wa sallama, nabiyyan.','Розиту би-Лллоҳи Раббан, ва би-л-Исломи динан ва би-Муҳаммадин, салло-Лллоҳу алайҳи ва саллама, набиййан.','Roziytu bi-Lllohi Robban, va bi-l-Islomi dinan va bi-Muhammadin, sallo-Lllohu alayhi va sallama, nabiyyan.'],
+        count:'3 раза',
+        ru:'Доволен я Аллахом как Господом, исламом — как религией и Мухаммадом, ﷺ — как пророком! (Ахмад, Абу Дауд)',
+        en:'I am pleased with Allah as my Lord, Islam as my religion, and Muhammad ﷺ as my Prophet! (Ahmad, Abu Dawud)',
+        tj:'Розӣ шудам ба Аллоҳ ҳамчун Парвардигор, ба ислом ҳамчун дин ва ба Муҳаммад ﷺ ҳамчун Пайғамбар! (Аҳмад, Абу Довуд)',
+        uz:'Allohdan Robb sifatida, Islomdan din sifatida va Muhammaddan ﷺ Payg\'ambar sifatida roziman! (Ahmad, Abu Dovud)',
+      },
+      {
+        ar:'يَا حَيُّ يَا قَيُّومُ بِرَحْمَتِكَ أَسْتَغِيثُ أَصْلِحْ لِي شَأْنِي كُلَّهُ وَ لَا تَكِلْنِي إِلَى نَفْسِي طَرْفَةَ عَيْنٍ',
+        translit:['Йа Хаййу, йа Каййуму, би-рахмати-кя астагису, аслих ли ша\'ни кулла-ху ва ля такиль-ни иля нафси тарфата \'айнин!','Ya Hayyu, ya Qayyumu, bi-rahmatika astaghithu, aslih li sha\'ni kullahu wa la takilni ila nafsi tarfata \'ayn!','Ё Ҳайю, ё Қайюм, би-раҳматика астағисо, аслиҳ ли шаъни куллаҳу ва ло такилнӣ ило нафсӣ тарфата айн!','Yo Hayyu, yo Qayyum, bi-rahmatika astag\'iso, aslih li shani kullahu va lo takilniy ilo nafsiy tarfata ayn!'],
+        ru:'О Живой, о Вечносущий, обращаюсь за защитой к милосердию Твоему, приведи в порядок все мои дела и не доверяй меня душе моей ни на мгновение! (Ан-Насаи)',
+        en:'O Ever-Living, O Self-Subsisting, by Your mercy I seek help; set right all of my affairs and do not leave me to myself even for a moment! (An-Nasa\'i)',
+        tj:'Эй Зинда, эй Поянда, ба раҳмати Ту паноҳ мебарам, тамоми корҳои маро дуруст кун ва маро ба нафси худам як лаҳза вонагузор! (Насоӣ)',
+        uz:'Ey Tirik, ey Boqiy, Sening rahmatingga sig\'inib yordam so\'rayman, barcha ishlarimni to\'g\'rilagin va meni bir lahza ham o\'z nafsimga tashlab qo\'ymagin! (Nasoiy)',
+      },
+      {
+        ar:'سُبْحَانَ اللَّهِ وَ بِحَمْدِهِ عَدَدَ خَلْقِهِ وَ رِضَا نَفْسِهِ وَ زِنَةَ عَرْشِهِ وَ مِدَادَ كَلِمَاتِهِ',
+        translit:['Субхана-Ллахи ва би-хамди-хи \'адада хальки-хи, ва рида нафси-хи, ва зинята \'арши-хи ва мидада кялимати-хи!','Subhana-Llahi wa bi-hamdihi \'adada khalqihi, wa rida nafsihi, wa zinata \'arshihi wa midada kalimatihi!','Субҳона-Лллоҳи ва би-ҳамдиҳи адада халқиҳи, ва ризо нафсиҳи, ва зинати аршиҳи ва мидоди калиматиҳи!','Subhona-Lllohi va bi-hamdihi adada xalqihi, va rizo nafsihi, va zinati arshihi va midodi kalimatihi!'],
+        count:'3 раза',
+        ru:'Пречист Аллах и хвала Ему столько раз, сколько существует Его творений, и столько раз, сколько будет Ему угодно, пусть вес этих славословий будет равен весу Его трона, и пусть для записи их потребуется столько же чернил, сколько нужно для записи слов Его! (Муслим)',
+        en:'Glory be to Allah and praise be to Him, as many times as the number of His creation, and as much as pleases Him, and the weight of His Throne, and the ink of His Words! (Muslim)',
+        tj:'Пок аст Аллоҳ ва ситоиш барои Ӯст ба андозаи шумораи махлуқоти Ӯ, ва ба андозаи ризояти Ӯ, ва ба вазни тахти Ӯ, ва ба миқдори сиёҳии калимоти Ӯ! (Муслим)',
+        uz:'Alloh pokdir va hamd Unga xosdir, Uning yaratganlarining soni miqdorida, Uning roziligi miqdorida, Uning taxtining vazni miqdorida va Uning so\'zlarining siyohi miqdorida! (Muslim)',
+      },
+      {
+        ar:'حَسْبِيَ اللَّهُ لَا إِلَهَ إِلَّا هُوَ عَلَيْهِ تَوَكَّلْتُ وَ هُوَ رَبُّ الْعَرْشِ الْعَظِيمِ',
+        translit:['Хасбия-Ллаху, ля иляха илля хуа, \'аляйхи таваккяльту ва хуа Раббу-ль-\'арши-ль-\'азыми.','Hasbiya-Llahu, la ilaha illa hu, \'alayhi tawakkaltu wa hua Rabbu-l-\'arshi-l-\'azim.','Ҳасбия-Лллоҳу, ло илоҳа илло ҳу, алайҳи таваккалту ва ҳуа Раббу-л-арши-л-азим.','Hasbiya-Lllohu, lo iloha illo hu, alayhi tavakkaltu va hua Robbu-l-arshi-l-azim.'],
+        count:'7 раз',
+        ru:'Достаточно мне Аллаха, нет достойного поклонения, кроме Него, на Него я уповаю и Он — Господь великого трона. (Абу Дауд)',
+        en:'Allah is sufficient for me; there is no god but Him. I place my trust in Him, and He is the Lord of the Mighty Throne. (Abu Dawud)',
+        tj:'Аллоҳ маро кофист, нест худое ба ғайри Ӯ, ба Ӯ таваккул кардам ва Ӯ Парвардигори тахти бузург аст. (Абу Довуд)',
+        uz:'Alloh menga kifoya qiladi, Undan o\'zga iloh yo\'q, men Unga tayanaman va U buyuk taxtning Robbisidir. (Abu Dovud)',
+      },
+    ],
+  },
+  {
+    icon:'🌙',
+    name:'أذكار المساء',
+    nameL:['Вечерние азкары','Evening Adhkar','Азкори шом','Kechki azkorlar'],
+    duas:[
+      {
+        ar:'أَعُوذُ بِكَلِمَاتِ اللَّهِ التَّامَّاتِ مِنْ شَرِّ مَا خَلَقَ',
+        translit:['А\'узу би-калимати-Лляхи-т-таммати мин шарри ма халяка.','A\'uzu bi-kalimati-Llahi-t-tammati min sharri ma khalaqa.','Аъузу би-каломоти-Лллоҳи-т-таммати мин шарри мо халақа.','Auzu bi-kalomoti-Lllohi-t-tammati min sharri mo xalaqa.'],
+        ru:'Прибегаю к совершенным словам Аллаха от зла того, что Он сотворил. (Муслим)',
+        en:'I seek refuge in the perfect words of Allah from the evil of what He has created. (Muslim)',
+        tj:'Ба калимоти комили Аллоҳ паноҳ мебарам аз бадии он чи ки офарид. (Муслим)',
+        uz:'Allohning mukammal so\'zlariga sig\'inaman, Uning yaratganlarining yomonligidan. (Muslim)',
+      },
+      {
+        ar:'اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ خَلَقْتَنِي وَ أَنَا عَبْدُكَ وَ أَنَا عَلَى عَهْدِكَ وَ وَعْدِكَ مَا اسْتَطَعْتُ أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ وَ أَبُوءُ بِذَنْبِي فَاغْفِرْ لِي فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ',
+        translit:['Аллахумма, анта Рабби, ля иляха илля Анта, халякта-ни ва ана \'абду-кя, ва ана \'аля \'ахди-кя ва ва\'ди-кя ма-стата\'ту. А\'узу би-кя мин шарри ма сана\'ту, абу\'у ля-кя би-ни\'мати-кя \'аляййя, ва абу\'у би-занби, фа-гфир ли, фа-инна-ху ля йагфи-ру-з-зунуба илля Анта!','Allahumma, anta Rabbi, la ilaha illa Anta, khalaqtani wa ana \'abduka, wa ana \'ala \'ahdika wa wa\'dika mastata\'tu. A\'uzu bika min sharri ma sana\'tu, abu\'u laka bini\'matika \'alayya, wa abu\'u bizanbi, faghfir li, fa-innahu la yaghfiru-z-zunuba illa Anta!','Аллоҳумма, анта Раббӣ, ло илоҳа илло Анта, халақтанӣ ва ана абдука, ва ана ало аҳдика ва ваъдика мастатаъту. Аъузу бика мин шарри мо санаъту, абуъу лака бинимматика алайя, ва абуъу бизанбӣ, фағфирлӣ, фаиннаҳу ло яғфируз-зунуба илло Анта!','Allohumma, anta Robbiy, lo iloha illo Anta, xalaqtaniy va ana abduka, va ana alo ahdika va vadika mastatatu. Auzu bika min sharri mo sanatu, abuu laka binimatika alayya, va abuu bizanbiy, fag\'firliy, fa-innahu lo yag\'firuz-zunuba illo Anta!'],
+        ru:'О Аллах, Ты — Господь мой, и нет достойного поклонения, кроме Тебя, Ты создал меня, а я — Твой раб, и я буду хранить верность Тебе, пока у меня хватит сил. Прибегаю к Тебе от зла того, что я сделал, признаю милость, оказанную Тобой мне, и признаю грех свой. Прости же меня, ибо, поистине, никто не прощает грехов, кроме Тебя! (Бухари)',
+        en:'O Allah, You are my Lord, there is no god but You. You created me and I am Your servant, and I remain true to my covenant with You as best I can. I seek refuge in You from the evil of what I have done. I acknowledge Your favor upon me, and I acknowledge my sin, so forgive me, for none forgives sins except You. (Bukhari)',
+        tj:'Эй Аллоҳ, Ту Парвардигори ман ҳастӣ, нест худое ба ғайри Ту. Ту маро офаридӣ ва ман бандаи Ту ҳастам, ва ман дар аҳду паймони Ту то ҳадди тавонам устоворам. Аз бадии амалам ба Ту паноҳ мебарам, неъмати Туро бар худ иқрор мекунам ва гунохамро эътироф мекунам, пас маро биёмурз, зеро ҳеч кас гунохҳоро намебахшад магар Ту! (Бухорӣ)',
+        uz:'Ey Alloh, Sen mening Rabbimsan, Sendan o\'zga iloh yo\'q. Sen meni yaratding va men Sening bandangman, men qodirim boricha Senga bergan ahdimda turaman. Qilgan ishlarimning yomonligidan Senga sig\'inaman, menga bergan ne\'matlaringni tan olaman va gunohimni tan olaman, meni kechirgin, chunki gunohlarni faqat Sen kechirasan! (Buxoriy)',
+      },
+      {
+        ar:'لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ ، لَهُ الْمُلْكُ وَ لَهُ الْحَمْدُ وَ هُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ',
+        translit:['Ля иляха илля-Ллаху вахда-ху ля шарика ля-ху, ля-ху-ль-мульку ва ля-ху-ль-хамду ва хуа \'аля кулли шайин кадир.','La ilaha illa-Llahu wahdahu la sharika lahu, lahu-l-mulku wa lahu-l-hamdu wa hua \'ala kulli shay\'in qadir.','Ло илоҳа илло-Лллоҳу ваҳдаҳу ло шарика лаҳу, лаҳу-л-мулку ва лаҳу-л-ҳамду ва ҳуа ало кулли шайин қодир.','Lo iloha illo-Lllohu vahdahu lo sharika lahu, lahu-l-mulku va lahu-l-hamdu va hua alo kulli shayin qodir.'],
+        count:'10 раз',
+        ru:'Нет достойного поклонения, кроме одного лишь Аллаха, у которого нет сотоварища, Ему принадлежит владычество, Ему хвала, Он всё может. (Ахмад)',
+        en:'There is no god but Allah alone, with no partner. To Him belongs all dominion and all praise, and He is able to do all things. (Ahmad)',
+        tj:'Нест худое ба ғайри Аллоҳ, Ягона аст, шарике надорад, мулк аз они Ӯст ва ситоиш ба Ӯст, ва Ӯ бар ҳама чиз тавоност. (Аҳмад)',
+        uz:'Allohdan o\'zga iloh yo\'q, U yagonadir, sherigi yo\'qdir, mulk Unga xosdir va hamd Unga xosdir, U hamma narsaga qodirdir. (Ahmad)',
+      },
+      {
+        ar:'سُبْحَانَ اللَّهِ وَ بِحَمْدِهِ',
+        translit:['Субхана-Ллахи ва би-хамди-хи.','Subhana-Llahi wa bi-hamdi-hi.','Субҳона-Лллоҳи ва би-ҳамди-ҳи.','Subhona-Lllohi va bi-hamdi-hi.'],
+        count:'100 раз',
+        ru:'Пречист Аллах и хвала Ему. (Муслим)',
+        en:'Glory be to Allah and praise be to Him. (Muslim)',
+        tj:'Пок аст Аллоҳ ва ситоиш барои Ӯст. (Муслим)',
+        uz:'Alloh pokdir va hamd Unga xosdir. (Muslim)',
+      },
+      {
+        ar:'أَمْسَيْنَا وَ أَمْسَى الْمُلْكُ لِلَّهِ ، وَ الْحَمْدُ لِلَّهِ ، لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ ، لَهُ الْمُلْكُ وَ لَهُ الْحَمْدُ وَ هُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ، رَبِّ أَسْأَلُكَ خَيْرَ مَا فِي هَذِهِ اللَّيْلَةِ وَ خَيْرَ مَا بَعْدَهَا وَ أَعُوذُ بِكَ مِنْ شَرِّ مَا فِي هَذِهِ اللَّيْلَةِ وَ شَرِّ مَا بَعْدَهَا رَبِّ أَعُوذُ بِكَ مِنَ الْكَسَلِ وَ سُوءِ الْكِبَرِ ، رَبِّ أَعُوذُ بِكَ مِنْ عَذَابٍ فِي النَّارِ وَ عَذَابٍ فِي الْقَبْرِ',
+        translit:['Амсайна ва амса-ль-мульку ли-Лляхи ва-ль-хамду ли-Лляхи, ля иляха илля Ллаху вахда-ху ля шарика ля-ху, ля-ху-ль-мульку ва ля-ху-ль-хамду ва хуа аля кулли шайин кадирун. Рабби ас\'алюкя хайра ма фи хазихи-ль-лейляти ва хайра ма ба\'адаха ва а\'узу бикя мин шарри ма фи хазихи-ль-лейляти ва шарри ма ба\'адаха Рабби, а\'узу би-кя мин аль-кясали ва суи-ль-кибари, Рабби, а\'узу би-кя мин \'азабин фи-н-нари ва \'азабин фи-ль-кабри!','Amsayna wa amsa-l-mulku li-Llahi wa-l-hamdu li-Llahi, la ilaha illa Llahu wahdahu la sharika lahu, lahu-l-mulku wa lahu-l-hamdu wa hua \'ala kulli shay\'in qadirun. Rabbi as\'aluka khayra ma fi hadhihi-l-laylati wa khayra ma ba\'daha wa a\'uzu bika min sharri ma fi hadhihi-l-laylati wa sharri ma ba\'daha! Rabbi, a\'uzu bika min al-kasali wa su\'i-l-kibari, Rabbi, a\'uzu bika min \'adhabin fi-n-nari wa \'adhabin fi-l-qabri!','Амсайно ва амса-л-мулку ли-Лллоҳи ва-л-ҳамду ли-Лллоҳи, ло илоҳа илло Лллоҳу ваҳдаҳу ло шарика лаҳу, лаҳу-л-мулку ва лаҳу-л-ҳамду ва ҳуа ало кулли шайин қодирун. Раббӣ асалука хайра мо фи ҳазиҳи-л-лайлати ва хайра мо баъдаҳа ва аъузу бика мин шарри мо фи ҳазиҳи-л-лайлати ва шарри мо баъдаҳа! Раббӣ, аъузу бика мин ал-касали ва суи-л-кибари, Раббӣ, аъузу бика мин азобин фи-н-нори ва азобин фи-л-қабри!','Amsayna va amsa-l-mulku li-Lllohi va-l-hamdu li-Lllohi, lo iloha illo Lllohu vahdahu lo sharika lahu, lahu-l-mulku va lahu-l-hamdu va hua alo kulli shayin qodirun. Robbiy asaluka xayra mo fi hazihi-l-laylati va xayra mo badaha va auzu bika min sharri mo fi hazihi-l-laylati va sharri mo badaha! Robbiy, auzu bika min al-kasali va sui-l-kibari, Robbiy, auzu bika min azobin fi-n-nori va azobin fi-l-qabri!'],
+        ru:'Мы дожили до вечера, и этим вечером владычество принадлежит Аллаху, и хвала Аллаху, нет достойного поклонения, кроме одного лишь Аллаха, у которого нет сотоварища. Ему принадлежит владычество, Ему хвала, Он всё может. Господь мой, прошу Тебя о благе того, что будет в эту ночь, и благе того, что за ней последует, и прибегаю к Тебе от зла того, что будет в эту ночь, и зла того, что за ней последует. Господь мой, прибегаю к Тебе от нерадения и старческой дряхлости, Господь мой, прибегаю к Тебе от мучений в огне и мучений в могиле! (Муслим)',
+        en:'We have reached the evening, and at this very hour all dominion belongs to Allah. There is no god but Allah alone, with no partner. To Him belongs all dominion and all praise, and He is able to do all things. My Lord, I ask You for the good of this night and the good that follows it, and I seek refuge in You from the evil of this night and the evil that follows it. My Lord, I seek refuge in You from laziness and feeble old age. My Lord, I seek refuge in You from punishment in the Fire and punishment in the grave. (Muslim)',
+        tj:'Мо ба шом расидем, ва дар ин шом мулк аз они Аллоҳ аст ва ситоиш Аллоҳро, нест худое ба ғайри Аллоҳ, шарике надорад. Мулк аз они Ӯст ва ситоиш ба Ӯст, ва Ӯ бар ҳама чиз тавоност. Парвардигори ман, аз Ту хайри ин шабро ва хайри баъд аз онро мехоҳам, ва аз бадии ин шаб ва бадии баъд аз он ба Ту паноҳ мебарам. Парвардигори ман, аз карахтӣ ва пирии бад ба Ту паноҳ мебарам, аз азоби оташ ва азоби қабр ба Ту паноҳ мебарам! (Муслим)',
+        uz:'Biz kechga yetib keldik, va shu kechda mulk Allohga xosdir va hamd Allohga xosdir, Allohdan o\'zga iloh yo\'q, sherigi yo\'qdir. Mulk Unga xosdir va hamd Unga xosdir, U hamma narsaga qodirdir. Robbim, Sendan bu kechaning yaxshiligini va undan keyingi yaxshilikni so\'rayman, bu kechaning yomonligidan va undan keyingi yomonlikdan Senga sig\'inaman. Robbim, dangasalik va yomon qarilikdan Senga sig\'inaman, do\'zax azobidan va qabr azobidan Senga sig\'inaman! (Muslim)',
+      },
+      {
+        ar:'اللَّهُمَّ بِكَ أَمْسَيْنَا وَبِكَ نَحْيَا وَبِكَ نَمُوتُ وَ إِلَيْكَ الْمَصِيرُ',
+        translit:['Аллахума, би-кя амсайна, ва би-кя нахйа, ва би-кя намуту ва иляй-кя-ль-масиру.','Allahuma, bika amsayna, wa bika nahya, wa bika namutu wa ilayka-l-masir.','Аллоҳума, бика амсайно, ва бика наҳё, ва бика намуту ва илайка-л-масир.','Allohuma, bika amsayna, va bika nahyo, va bika namutu va ilayka-l-masir.'],
+        ru:'О Аллах, благодаря Тебе мы дожили до вечера. Ты даёшь нам жизнь, и Ты лишаешь нас её и Ты воскресишь нас для отчета.',
+        en:'O Allah, by You we have reached the evening; by You we live and by You we die, and to You is the final return.',
+        tj:'Эй Аллоҳ, ба воситаи Ту мо шом кардем, бо Ту зиндаем ва бо Ту мемирем, ва бозгашти ниҳоӣ назди Туст.',
+        uz:'Ey Alloh, Sening bilan kechga yetdik, Sening bilan yashaymiz va Sening bilan o\'lamiz, yakuniy qaytish Sengadir.',
+      },
+      {
+        ar:'اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَافِيَةَ فِي الدُّنْيَا وَ الْآخِرَةِ ، اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَفْوَ وَ الْعَافِيَةَ فِي دِينِي وَ دُنْيَايَ وَ أَهْلِي وَ مَالِي ، اللَّهُمَّ اسْتُرْ عَوْرَاتِي، وَآمِنْ رَوْعَاتِي ، اللَّهُمَّ احْفَظْنِي مِنْ بَيْنِ يَدَيَّ وَ مِنْ خَلْفِي وَ عَنْ يَمِينِي وَ عَنْ شِمَالِي وَ مِنْ فَوْقِي وَ أَعُوذُ بِعَظَمَتِكَ أَنْ أُغْتَالَ مِنْ تَحْتِي',
+        translit:['Аллахумма, инни ас\'алю-кя-ль-\'афийата фи-д-дунья ва-ль-ахирати, Аллахумма, инни ас\'алю-кя-ль-\'афуа ва-ль-\'афийата фи дини, ва ду-ньяйа, ва ахли, ва мали. Аллахумма-стур \'аурати ва-эмин рау\'ати, Аллахумма-хфаз-ни мин байни йадаййа, ва мин хальфи, ва \'ан ямини, ва \'ан шимали ва мин фауки, ва а\'узу би-\'азамати-кя ан угталя мин тахти!','Allahumma, inni as\'aluka-l-\'afiyata fi-d-dunya wa-l-akhirati, Allahumma, inni as\'aluka-l-\'afwa wa-l-\'afiyata fi dini, wa dunyaya, wa ahli, wa mali. Allahumma-stur \'awrati wa-amin raw\'ati, Allahumma-hfazni min bayni yadayya, wa min khalfi, wa \'an yamini, wa \'an shimali wa min fawqi, wa a\'uzu bi-\'azamatika an ughtala min tahti!','Аллоҳумма, инни асалука-л-офията фи-д-дунё ва-л-охирати, Аллоҳумма, инни асалука-л-афва ва-л-офията фи динаш, ва дуньёяи, ва аҳлаш, ва молаш. Аллоҳумма-стур авротамро ва-омин равъатамро, Аллоҳумма-ҳфазнӣ мин байни ядайя, ва мин халфамро, ва ан яминамро, ва ан шимолаш ва мин фавқамро, ва аъузу би-азаматика ан уғтала мин таҳтамро!','Allohumma, inni asaluka-l-ofiyata fi-d-dunyo va-l-oxirati, Allohumma, inni asaluka-l-afva va-l-ofiyata fi dinida, va dunyoyoyi, va ahlida, va molida. Allohumma-stur avrotimni va-omin ravatimdan, Allohumma-hfazni min bayni yadayya, va min xalfimdan, va an yaminimdan, va an shimolida va min favqimdan, va auzu bi-azamatika an ug\'tala min tahtimdan!'],
+        ru:'О Аллах, поистине, я прошу Тебя о благополучии в мире этом и в мире ином. О Аллах, поистине, я прошу Тебя о прощении и благополучии в моей религии, и моих мирских делах, в моей семье и в моём имуществе. О Аллах, прикрой мою наготу и огради меня от страха, о Аллах, защити меня спереди, и сзади, и справа, и слева, и сверху, и я прибегаю к величию Твоему от того, чтобы быть предательски убитым снизу. (Ахмад, Абу Дауд)',
+        en:'O Allah, I ask You for well-being in this world and the next. O Allah, I ask You for forgiveness and well-being in my religion, my worldly affairs, my family and my wealth. O Allah, conceal my faults and keep me safe from fear. O Allah, protect me from in front of me, behind me, my right, my left, and above me. (Ahmad, Abu Dawud)',
+        tj:'Эй Аллоҳ, ба ростӣ ман аз Ту офияту саломатиро дар дунё ва охират мехоҳам. Эй Аллоҳ, аз Ту бахшоиш ва саломатиро дар дини худ, дунёи худ, аҳли худ ва моли худ мехоҳам. Эй Аллоҳ, нуқсонҷамеро бипӯшон ва аз тарс маро эмин гардон. (Аҳмад, Абу Довуд)',
+        uz:'Ey Alloh, albatta men Sendan bu dunyo va oxiratda salomatlik so\'rayman. Ey Alloh, Sendan dinimda, dunyoviy ishlarimda, oilamda va mol-mulkimda kechirim va salomatlik so\'rayman. Ey Alloh, kamchiliklarimni yashir va qo\'rquvdan meni omon qil. (Ahmad, Abu Dovud)',
+      },
+      {
+        ar:'اللَّهُمَّ عَالِمَ الْغَيْبِ وَ الشَّهَادَةِ ، فَاطِرَ السَّمَاوَاتِ وَ الْأَرْضِ ، رَبَّ كُلِّ شَيْءٍ وَ مَلِيكَهُ ، أَشْهَدُ أَنْ لَا إِلَهَ إِلَّا أَنْتَ أَعُوذُ بِكَ مِنْ شَرِّ نَفْسِي وَ مِنْ شَرِّ الشَّيْطَانِ وَ شِرْكِهِ وَ أَنْ أَقْتَرِفَ عَلَى نَفْسِي سُوءًا أَوْ أَجُرَّهُ إِلَى مُسْلِمٍ',
+        translit:['Аллахумма, \'Алима-ль-гайби ва-ш-шахадати, Фатира-с-самавати ва-ль-арди, Рабба кулли шайин ва Малика-ху, ашхаду алля иляха илля Анта, а\'узу би-кя мин шарри нафси, ва мин шарри-ш-шайтани ва ширки-хи ва ан актарифа \'аля нафси су\'ан ау аджурра-ху иля мусли-мин.','Allahumma, \'Alima-l-ghaybi wa-sh-shahadati, Fatira-s-samawati wa-l-ardi, Rabba kulli shay\'in wa Malikahu, ashhadu alla ilaha illa Anta, a\'uzu bika min sharri nafsi, wa min sharri-sh-shaytani wa shirkihi wa an aqtarifa \'ala nafsi su\'an aw ajurrahu ila muslim.','Аллоҳумма, Алиму-л-ғайби ва-ш-шаҳодати, Фотиру-с-самовоти ва-л-арзи, Раббаи кулли шайъин ва Моликаҳу, ашҳаду алло илоҳа илло Анта, аъузу бика мин шарри нафсӣ, ва мин шарри-ш-шайтони ва ширкиҳи ва ан актарифа ало нафсӣ суан ав аджурраҳу ило муслимин.','Allohumma, Alimu-l-g\'aybi va-sh-shahodati, Fotiru-s-samovoti va-l-arzi, Robbai kulli shayin va Molikahu, ashhadu allo iloha illo Anta, auzu bika min sharri nafsiy, va min sharri-sh-shaytoni va shirkihi va an aqtarifa alo nafsiy suan av ajurrahu ilo muslimin.'],
+        ru:'О Аллах, Знающий сокрытое и явное, Творец небес и земли, Господь и Владыка всего, свидетельствую, что нет достойного поклонения, кроме Тебя, прибегаю к Тебе от зла души своей, от зла и многобожия шайтана и от того, чтобы причинить зло самому себе или навлечь его на какого-нибудь мусульманина. (Ахмад, Ат-Тирмизи)',
+        en:'O Allah, Knower of the unseen and the seen, Creator of the heavens and the earth, Lord and Sovereign of all things, I bear witness that there is no god but You. I seek refuge in You from the evil of my own soul and from the evil and polytheism of Satan. (Ahmad, At-Tirmidhi)',
+        tj:'Эй Аллоҳ, Доно ба ниҳону ошкор, Офаринандаи осмонҳо ва замин, Парвардигор ва Соҳиби ҳама чиз, шоҳидӣ медиҳам, ки нест худое ба ғайри Ту, ба Ту паноҳ мебарам аз бадии нафси худ ва аз бадии шайтон ва шарики ӯ. (Аҳмад, Тирмизӣ)',
+        uz:'Ey Alloh, yashirin va oshkorni Biluvchi, osmonlar va yerni Yaratuvchi, hamma narsaning Robbisi va Egasi, guvohlik beraman, Sendan o\'zga iloh yo\'q, o\'z nafsimning yomonligidan, shayton va uning sherigining yomonligidan Senga sig\'inaman. (Ahmad, Tirmiziy)',
+      },
+      {
+        ar:'رَضِيتُ بِاللَّهِ رَبًّا ، وَ بِالْإسْلَامِ دِيناً وَ بِمُحَمَّدٍ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ نَبِيًّا',
+        translit:['Радыйту би-Лляхи Раббан, ва би-ль-исляами динан ва би-Мухаммадин, салля-Ллаху \'аляйхи ва салляма, набиййан.','Radiytu bi-Llahi Rabban, wa bi-l-Islami dinan wa bi-Muhammadin, salla-Llahu \'alayhi wa sallama, nabiyyan.','Розиту би-Лллоҳи Раббан, ва би-л-Исломи динан ва би-Муҳаммадин, салло-Лллоҳу алайҳи ва саллама, набиййан.','Roziytu bi-Lllohi Robban, va bi-l-Islomi dinan va bi-Muhammadin, sallo-Lllohu alayhi va sallama, nabiyyan.'],
+        count:'3 раза',
+        ru:'Доволен я Аллахом как Господом, исламом — как религией и Мухаммадом, ﷺ — как пророком! (Ахмад, Абу Дауд)',
+        en:'I am pleased with Allah as my Lord, Islam as my religion, and Muhammad ﷺ as my Prophet! (Ahmad, Abu Dawud)',
+        tj:'Розӣ шудам ба Аллоҳ ҳамчун Парвардигор, ба ислом ҳамчун дин ва ба Муҳаммад ﷺ ҳамчун Пайғамбар! (Аҳмад, Абу Довуд)',
+        uz:'Allohdan Robb sifatida, Islomdan din sifatida va Muhammaddan ﷺ Payg\'ambar sifatida roziman! (Ahmad, Abu Dovud)',
+      },
+      {
+        ar:'يَا حَيُّ يَا قَيُّومُ بِرَحْمَتِكَ أَسْتَغِيثُ أَصْلِحْ لِي شَأْنِي كُلَّهُ وَ لَا تَكِلْنِي إِلَى نَفْسِي طَرْفَةَ عَيْنٍ',
+        translit:['Йа Хаййу, йа Каййуму, би-рахмати-кя астагису, аслих ли ша\'ни кулла-ху ва ля такиль-ни иля нафси тарфата \'айнин!','Ya Hayyu, ya Qayyumu, bi-rahmatika astaghithu, aslih li sha\'ni kullahu wa la takilni ila nafsi tarfata \'ayn!','Ё Ҳайю, ё Қайюм, би-раҳматика астағисо, аслиҳ ли шаъни куллаҳу ва ло такилнӣ ило нафсӣ тарфата айн!','Yo Hayyu, yo Qayyum, bi-rahmatika astag\'iso, aslih li shani kullahu va lo takilniy ilo nafsiy tarfata ayn!'],
+        ru:'О Живой, о Вечносущий, обращаюсь за защитой к милосердию Твоему, приведи в порядок все мои дела и не доверяй меня душе моей ни на мгновение! (Ан-Насаи)',
+        en:'O Ever-Living, O Self-Subsisting, by Your mercy I seek help; set right all of my affairs and do not leave me to myself even for a moment! (An-Nasa\'i)',
+        tj:'Эй Зинда, эй Поянда, ба раҳмати Ту паноҳ мебарам, тамоми корҳои маро дуруст кун ва маро ба нафси худам як лаҳза вонагузор! (Насоӣ)',
+        uz:'Ey Tirik, ey Boqiy, Sening rahmatingga sig\'inib yordam so\'rayman, barcha ishlarimni to\'g\'rilagin va meni bir lahza ham o\'z nafsimga tashlab qo\'ymagin! (Nasoiy)',
+      },
+      {
+        ar:'بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَ لَا فِي السَّمَاءِ وَ هُوَ السَّمِيعُ الْعَلِيمُ',
+        translit:['Би-сми-Лляхи аллязи ля йадурру ма\'а исми-хи шайун фи-ль-арди ва ля фи-с-самаи ва хуа-с-Сами\'у-ль-\'Алиму.','Bismi-Llahi-l-ladhi la yadurru ma\'a ismihi shay\'un fi-l-ardi wa la fi-s-sama\'i wa huwa-s-Sami\'u-l-\'Alim.','Бисми-Лллоҳи аллазӣ ло ядурру маъа исмиҳи шайъун фи-л-арзи ва ло фи-с-самои ва ҳуа-с-Самиъу-л-Алим.','Bismi-Lllohi-l-ladi lo yadurru maa ismihi shayun fi-l-arzi va lo fi-s-samoi va huva-s-Samiu-l-Alim.'],
+        count:'3 раза',
+        ru:'С именем Аллаха, с именем которого ничто не причинит вред ни на земле, ни на небе, ведь Он — Слышащий, Знающий! (Ахмад, Ат-Тирмизи)',
+        en:'In the name of Allah, with whose name nothing on earth or in heaven can cause harm, and He is the All-Hearing, the All-Knowing. (Ahmad, At-Tirmidhi)',
+        tj:'Бо номи Аллоҳ, ки бо номи Ӯ ҳеч чиз дар замин ва дар осмон зарар намерасонад, ва Ӯ Шунаво ва Доност! (Аҳмад, Тирмизӣ)',
+        uz:'Allohning nomi bilan, Uning nomi bilan yerda va osmonda hech narsa zarar yetkazmaydi, U Eshituvchi va Biluvchidir! (Ahmad, Tirmiziy)',
+      },
+    ],
+  },
+  {
+    icon:'🙏',
+    name:'أدعية بعد الصلاة',
+    nameL:['Дуа после намаза','Dua After Prayer','Дуои баъд аз намоз','Namozdan keyingi dualar'],
+    duas:[
+      {
+        ar:'أَسْـتَغْفِرُ اللَّهَ أَسْـتَغْفِرُ اللَّهَ أَسْـتَغْفِرُ اللَّهَ . اللَّهُـمَّ أَنْـتَ السَّلَامُ ، وَمِـنْكَ السَّلَامُ ، تَبارَكْتَ يَا ذَا الجَـلَالِ وَالإِكْـرَامِ',
+        translit:['Астагфиру Ллаха астагфиру Ллаха астагфиру Ллаха. Аллахумма анта с-Саляму ва мин-ка с-саляму табаракта йа За-ль-джаляли ва-ль-икрам!','Astaghfiru-Llaha astaghfiru-Llaha astaghfiru-Llaha. Allahumma anta s-Salamu wa minka s-salamu tabarakta ya Dha-l-jalali wa-l-ikram!','Астағфиру-Лллоҳа астағфиру-Лллоҳа астағфиру-Лллоҳа. Аллоҳумма анта с-Салому ва минка с-салому таборакта ё Зо-л-жалоли ва-л-икром!','Astag\'firu-Lllohа astag\'firu-Lllohа astag\'firu-Lllohа. Allohumma anta s-Salomu va minka s-salomu taborakta yo Zo-l-jaloli va-l-ikrom!'],
+        ru:'Прошу Аллаха о прощении, прошу Аллаха о прощении, прошу Аллаха о прощении. О Аллах! Ты — Совершенный, и лишь от Тебя зависит избавление от бедствий, благословен Ты, о Обладатель величия и щедрости! (Муслим)',
+        en:'I ask Allah for forgiveness, I ask Allah for forgiveness, I ask Allah for forgiveness. O Allah, You are Peace, and from You comes peace; blessed are You, O Possessor of majesty and honor! (Muslim)',
+        tj:'Аз Аллоҳ бахшоиш металабам, аз Аллоҳ бахшоиш металабам, аз Аллоҳ бахшоиш металабам. Эй Аллоҳ, Ту Саломатӣ ҳастӣ ва аз Ту саломатист, муборак бошӣ, эй Соҳиби бузургиву карам! (Муслим)',
+        uz:'Allohdan kechirim so\'rayman, Allohdan kechirim so\'rayman, Allohdan kechirim so\'rayman. Ey Alloh, Sen Tinchliksan va tinchlik Sendandir, muborak bo\'lgin, ey Buyuklik va karam Egasi! (Muslim)',
+      },
+      {
+        ar:'لَا إِلَهَ إلاَّ اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُـلْكُ وَلَهُ الْحَمْدُ، وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ، اللَّهُـمَّ لَا مَانِعَ لِمَا أَعْطَـيْتَ، وَلَا مُعْطِـيَ لِمَا مَنَـعْتَ، وَلَا يَنْفَـعُ ذَا الجَـدِّ مِنْـكَ الجَـدُّ',
+        translit:['Ля иляха илля Ллаху вахда-ху ля шарика ля-ху. Ля-ху ль-мульку ва ля-ху ль-хамду ва хуа \'аля кулли шай\'ин кадир. Аллахумма ля мани\'а ли-ма а\'тайта ва ля му\'тыйа ли-ма мана\'та ва ля йанфа\'у за-ль-джадди мин-ка ль-джадд.','La ilaha illa-Llahu wahdahu la sharika lahu. Lahu-l-mulku wa lahu-l-hamdu wa hua \'ala kulli shay\'in qadir. Allahumma la mani\'a lima a\'tayta wa la mu\'tiya lima mana\'ta wa la yanfa\'u dha-l-jaddi minka-l-jadd.','Ло илоҳа илло Лллоҳу ваҳдаҳу ло шарика лаҳу. Лаҳу-л-мулку ва лаҳу-л-ҳамду ва ҳуа ало кулли шайъин қодир. Аллоҳумма ло маниа лимо атайта ва ло муътия лимо манаъта ва ло янфаъу зо-л-жаддӣ минка-л-жадд.','Lo iloha illo Lllohu vahdahu lo sharika lahu. Lahu-l-mulku va lahu-l-hamdu va hua alo kulli shayin qodir. Allohumma lo mania limo ataita va lo mutiya limo manata va lo yanfau zo-l-jaddiy minka-l-jadd.'],
+        ru:'Нет бога, кроме одного лишь Аллаха, у Которого нет сотоварища; Ему принадлежит власть, Ему — хвала, и Он всё может. О Аллах, никто не лишит того, что Ты даровал, и никто не дарует того, чего Ты лишил, и бесполезным пред Тобой окажется богатство обладающего богатством. (Аль-Бухари, Муслим)',
+        en:'There is no god but Allah alone, with no partner; to Him belongs dominion and praise, and He is able to do all things. O Allah, none can withhold what You have given, and none can give what You have withheld, and the wealth of the wealthy avails nothing against You. (Bukhari, Muslim)',
+        tj:'Нест худое ба ғайри Аллоҳ, Ягона аст, шарике надорад; мулк аз они Ӯст ва ситоиш ба Ӯст, ва Ӯ бар ҳама чиз тавоност. Эй Аллоҳ, ҳеч кас он чи Ту бахшидаӣ нагирад, ва ҳеч кас он чи Ту нагирифтаӣ набахшад, ва сарвати сарватманд назди Ту фоида надорад. (Бухорӣ, Муслим)',
+        uz:'Allohdan o\'zga iloh yo\'q, U yagonadir, sherigi yo\'qdir; mulk Unga xosdir va hamd Unga xosdir, U hamma narsaga qodirdir. Ey Alloh, hech kim Sen berganni tutib qolmaydi, hech kim Sen tutib qolganni bermaydi, va boylik egasining boyligi Sening huzuringda foyda bermaydi. (Buxoriy, Muslim)',
+      },
+      {
+        ar:'لَا إلَهَ إلَّا اللَّهُ, وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ، وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ، لَا حَـوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ، لَا إلَهَ إلَّا اللَّهُ، وَلَا نَعْـبُـدُ إِلَّا إيَّاهُ, لَهُ النِّعْـمَةُ وَلَهُ الفَضْلُ وَلَهُ الثَّـنَاءُ الحَـسَنُ، لَا إلَهَ إلَّا اللَّهُ مُخْلِصِينَ لَـهُ الدِّينَ وَلَوْ كَـرِهَ الكَـافِرُونَ',
+        translit:['Ля иляха илля Ллаху вахда-ху ля шарика ля-ху. Ля-ху ль-мульку ва ля-ху ль-хамду ва хуа \'аля кулли шай\'ин кадир. Ля хауля ва ля куввата илля би-Лляхи ля иляха илля Ллаху ва ля на\'буду илля иййа-ху. Ля-ху н-ни\'мату ва ля-ху ль-фадлю ва ля-ху с-сана\'у ль-хасан. Ля иляха илля Ллаху мухлисына ля-ху д-дина ва ляу кяриха ль-кафирун!','La ilaha illa-Llahu wahdahu la sharika lahu. Lahu-l-mulku wa lahu-l-hamdu wa hua \'ala kulli shay\'in qadir. La hawla wa la quwwata illa bi-Llahi, la ilaha illa-Llahu wa la na\'budu illa iyyahu. Lahu-n-ni\'matu wa lahu-l-fadlu wa lahu-th-thana\'u-l-hasan. La ilaha illa-Llahu mukhlisina lahu-d-dina wa law kariha-l-kafirun!','Ло илоҳа илло Лллоҳу ваҳдаҳу ло шарика лаҳу. Лаҳу-л-мулку ва лаҳу-л-ҳамду ва ҳуа ало кулли шайъин қодир. Ло ҳавла ва ло қуввата илло би-Лллоҳи, ло илоҳа илло-Лллоҳу ва ло наъбуду илло иййаҳу. Лаҳу-н-нимату ва лаҳу-л-фазлу ва лаҳу-с-санои-л-ҳасан. Ло илоҳа илло-Лллоҳу муҳлисино лаҳу-д-дина ва лав кориҳа-л-кофирун!','Lo iloha illo Lllohu vahdahu lo sharika lahu. Lahu-l-mulku va lahu-l-hamdu va hua alo kulli shayin qodir. Lo havla va lo quvvata illo bi-Lllohi, lo iloha illo-Lllohu va lo nabudu illo iyyahu. Lahu-n-nimatu va lahu-l-fazlu va lahu-s-sanoi-l-hasan. Lo iloha illo-Lllohu muhlisino lahu-d-dina va lav koriha-l-kofirun!'],
+        ru:'Нет бога, кроме одного лишь Аллаха, у Которого нет сотоварища. Нет мощи и силы ни у кого, кроме Аллаха, не поклоняемся мы никому, кроме Него. Лишь у Него есть возможность оказывать милости и благодеяния, и Ему следует воздавать должную хвалу. Нет бога, кроме Аллаха, пред Которым мы искренни в религии, даже если это ненавистно неверным. (Муслим)',
+        en:'There is no god but Allah alone, with no partner. There is no power and no strength except with Allah; we worship none but Him. To Him belongs all favor and grace and the finest praise. There is no god but Allah, sincere in religion to Him, even though the disbelievers despise it. (Muslim)',
+        tj:'Нест худое ба ғайри Аллоҳ, шарике надорад. Қудрату тавон танҳо аз Аллоҳ аст, ва ба ҷуз Ӯ касеро намепарастем. Неъмату фазл аз они Ӯст ва ситоиши неку барои Ӯст. Нест худое ба ғайри Аллоҳ, дар дин барои Ӯ холисем, ҳарчанд кофирон нохуш доранд. (Муслим)',
+        uz:'Allohdan o\'zga iloh yo\'q, sherigi yo\'qdir. Kuch-quvvat faqat Allohdandir, Undan o\'zga hech kimga ibodat qilmaymiz. Faqat Unga ne\'mat va fazl xosdir va eng go\'zal hamd Unga xosdir. Allohdan o\'zga iloh yo\'q, dinda Unga xolis bo\'lib, kofirlar yomon ko\'rsa ham. (Muslim)',
+      },
+      {
+        ar:'سُـبْحَانَ اللَّهِ، وَالْحَمْـدُ لِلَّهِ ، وَاللَّهُ أكْـبَرُ (33) . لَا إلَهَ إلَّا اللَّهُ وَحْـدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ، وَهُوَ عَلَى كُلِّ شَيْءٍ قَـدِيرٌ',
+        translit:['Субхана-Ллах, Альхамду ли-Лляхи, Аллаху акбар (по 33 раза). Ля иляха илля-Ллаху вахдаху ля шарика ля-х(у), Ля-ху-ль-мульку, ва ля-ху-ль-хамду ва хува \'аля кулли щайин кадир!','Subhana-Llah, Alhamdu li-Llahi, Allahu akbar (33 times each). La ilaha illa-Llahu wahdahu la sharika lahu, lahu-l-mulku wa lahu-l-hamdu wa huwa \'ala kulli shay\'in qadir!','Субҳона-Лллоҳ, Алҳамду ли-Лллоҳи, Аллоҳу акбар (ҳар як 33 бор). Ло илоҳа илло-Лллоҳу ваҳдаҳу ло шарика лаҳу, лаҳу-л-мулку, ва лаҳу-л-ҳамду ва ҳуа ало кулли шайин қодир!','Subhona-Lllox, Alhamdu li-Lllohi, Allohu akbar (har biri 33 marta). Lo iloha illo-Lllohu vahdahu lo sharika lahu, lahu-l-mulku, va lahu-l-hamdu va hua alo kulli shayin qodir!'],
+        count:'33+33+33+1',
+        ru:'Пречист Аллах, хвала Аллаху, Аллах велик (по 33 раза). Нет бога, кроме одного лишь Аллаха, у Которого нет сотоварища; Ему принадлежит власть, Ему — хвала, и Он всё может! (Муслим)',
+        en:'Glory be to Allah, praise be to Allah, Allah is the Greatest (33 times each). There is no god but Allah alone, with no partner; to Him belongs dominion and praise, and He is able to do all things! (Muslim)',
+        tj:'Пок аст Аллоҳ, ситоиш барои Аллоҳ, Аллоҳ бузургтарин аст (ҳар як 33 бор). Нест худое ба ғайри Аллоҳ, шарике надорад; мулк аз они Ӯст ва ситоиш ба Ӯст, ва Ӯ бар ҳама чиз тавоност! (Муслим)',
+        uz:'Alloh pokdir, hamd Allohga xosdir, Alloh buyukdir (har biri 33 marta). Allohdan o\'zga iloh yo\'q, U yagonadir, sherigi yo\'qdir; mulk Unga xosdir va hamd Unga xosdir, U hamma narsaga qodirdir! (Muslim)',
+      },
+      {
+        ar:'رَبِّ قِنِي عَذَابَكَ يَوْمَ تَبْعَثُ عِبَادَكَ',
+        translit:['Рабби, кини \'азабака йаума таб\'асу \'ибадака.','Rabbi, qini \'adhabaka yawma tab\'athu \'ibadaka.','Раббӣ, қинӣ азобака явма табъасу ибодака.','Robbiy, qiniy azobaka yavma tabasu ibodaka.'],
+        ru:'Господь, защити от наказания в День Воскрешения. (Муслим)',
+        en:'My Lord, protect me from Your punishment on the Day You resurrect Your servants. (Muslim)',
+        tj:'Парвардигорам, маро аз азоби Худ дар рӯзе ки бандагонатро бармехезонӣ нигоҳ дор. (Муслим)',
+        uz:'Robbim, meni qabr azobidan saqlagin, bandalaringni qayta tiriltiradigan kunda. (Muslim)',
+      },
+      {
+        ar:'اللَّهُ لَآ إِلَـٰهَ إِلَّا هُوَ ٱلْحَىُّ ٱلْقَيُّومُ ۚ لَا تَأْخُذُهُۥ سِنَةٌۭ وَلَا نَوْمٌۭ ۚ لَّهُۥ مَا فِى ٱلسَّمَـٰوَٰتِ وَمَا فِى ٱلْأَرْضِ',
+        translit:['Аллаху ля иляха илля Ху, аль-Хаййу-ль-Каюм, ля та\'хузуху синатув-ва ля наум, ляху ма фис-самавати ва ма филь-ард...','Allahu la ilaha illa Hu, al-Hayyu-l-Qayyum, la ta\'khudhuhu sinatun wa la nawm, lahu ma fi-s-samawati wa ma fi-l-ard...','Аллоҳу ло илоҳа илло Ҳу, ал-Ҳаййу-л-Қаюм, ло таъхузуҳу синатун ва ло навм, лаҳу мо фи-с-самовоти ва мо фи-л-арз...','Allohu lo iloha illo Hu, al-Hayyu-l-Qayum, lo taxuzuhu sinatun va lo navm, lahu mo fi-s-samovoti va mo fi-l-arz...'],
+        ru:'Аят «Аль-Курси»: Аллах — нет божества, кроме Него, Живого, Вседержителя. Им не овладевают ни дремота, ни сон. Ему принадлежит то, что на небесах, и то, что на земле... Он — Возвышенный, Великий. (Сура «Аль-Бакара», 2:255)',
+        en:'Ayat al-Kursi: Allah — there is no god but Him, the Ever-Living, the Sustainer of all existence. Neither drowsiness overtakes Him nor sleep. To Him belongs whatever is in the heavens and whatever is on earth... He is the Most High, the Most Great. (Surah Al-Baqarah, 2:255)',
+        tj:'Ояти Курсӣ: Аллоҳ — нест худое ба ғайри Ӯ, Зинда, Поянда. Хоболудагӣ ва хоб Ӯро намегирад. Он чи дар осмонҳо ва замин аст, аз они Ӯст... Ӯ Баланд ва Бузург аст. (Сураи Бақара, 2:255)',
+        uz:'Oyat al-Kursiy: Alloh — Undan o\'zga iloh yo\'q, Tirik, Boqiy. Uni mahmurlik va uyqu bosmaydi. Osmonlarda va yerda bo\'lgan narsalar Unga xosdir... U Yuksak, Buyukdir. (Baqara surasi, 2:255)',
+      },
+      {
+        ar:'قُلْ هُوَ ٱللَّهُ أَحَدٌ ٱللَّهُ ٱلصَّمَدُ لَمْ يَلِدْ وَلَمْ يُولَدْ وَلَمْ يَكُن لَّهُۥ كُفُوًا أَحَدٌۢ',
+        translit:['Куль хуа-Ллаху ахад. Аллаху-с-самад. Лям ялид ва лям юляд. Ва лям якулля-ху куфуван ахад.','Qul Huwa-Llahu Ahad. Allahu-s-Samad. Lam yalid wa lam yulad. Wa lam yakun lahu kufuwan ahad.','Қул Ҳуа-Лллоҳу Аҳад. Аллоҳу-с-Самад. Лам ялид ва лам юлад. Ва лам якун лаҳу куфуван аҳад.','Qul Hua-Lllohu Ahad. Allohu-s-Samad. Lam yalid va lam yulad. Va lam yakun lahu kufuvan ahad.'],
+        ru:'Сура «Аль-Ихляс»: Скажи: «Он — Аллах Единый, Аллах Самодостаточный. Он не родил и не был рожден, и нет никого равного Ему». (Ахмад, Абу Дауд, Ат-Тирмизи, Ан-Насаи)',
+        en:'Surah Al-Ikhlas: Say, "He is Allah, the One. Allah, the Self-Sufficient. He neither begets nor is born, nor is there to Him any equivalent." (Ahmad, Abu Dawud, At-Tirmidhi, An-Nasa\'i)',
+        tj:'Сураи Ихлос: Бигӯ: «Ӯст Аллоҳи Ягона, Аллоҳи Бениёз. Назодааст ва зода нашудааст, ва Ӯро ҳамтое нест». (Аҳмад, Абу Довуд, Тирмизӣ, Насоӣ)',
+        uz:'Ixlos surasi: Ayt: \"U Alloh, Yagona. Alloh, Ehtiyojsiz. U tug\'magan va tug\'ilmagan, va Unga hech kim teng emas\". (Ahmad, Abu Dovud, Tirmiziy, Nasoiy)',
+      },
+      {
+        ar:'قُلْ أَعُوذُ بِرَبِّ ٱلْفَلَقِ مِن شَرِّ مَا خَلَقَ وَمِن شَرِّ غَاسِقٍ إِذَا وَقَبَ',
+        translit:['Куль а\'узу би-рабби-ль-фаляк. Мин шарри ма халяк. Ва мин шарри гасикин иза вакаб...','Qul a\'uzu bi-Rabbi-l-falaq. Min sharri ma khalaq. Wa min sharri ghasiqin idha waqab...','Қул аъузу би-Робби-л-фалақ. Мин шарри мо халақ. Ва мин шарри ғосиқин изо вақаб...','Qul auzu bi-Robbi-l-falaq. Min sharri mo xalaq. Va min sharri g\'osiqin izo vaqab...'],
+        ru:'Сура «Аль-Фаляк»: Скажи: «Прибегаю к защите Господа рассвета от зла того, что Он сотворил, от зла мрака, когда он наступает...» (Ахмад, Абу Дауд, Ат-Тирмизи, Ан-Насаи)',
+        en:'Surah Al-Falaq: Say, "I seek refuge in the Lord of daybreak, from the evil of that which He created, and from the evil of darkness when it settles..." (Ahmad, Abu Dawud, At-Tirmidhi, An-Nasa\'i)',
+        tj:'Сураи Фалақ: Бигӯ: «Ба Парвардигори субҳ паноҳ мебарам аз бадии он чи офарид, аз бадии торикӣ ҳангоме ки фуруд меояд...» (Аҳмад, Абу Довуд, Тирмизӣ, Насоӣ)',
+        uz:'Falaq surasi: Ayt: \"Tongning Robbisiga sig\'inaman, U yaratgan narsaning yomonligidan, qorongulik cho\'kkanda uning yomonligidan...\" (Ahmad, Abu Dovud, Tirmiziy, Nasoiy)',
+      },
+      {
+        ar:'قُلْ أَعُوذُ بِرَبِّ ٱلنَّاسِ مَلِكِ ٱلنَّاسِ إِلَـٰهِ ٱلنَّاسِ مِن شَرِّ ٱلْوَسْوَاسِ ٱلْخَنَّاسِ',
+        translit:['Куль а\'узу би-рабби-н-нас. Малики-н-нас. Иляхи-н-нас. Мин шарри-ль-васваси-ль-ханнас...','Qul a\'uzu bi-Rabbi-n-nas. Maliki-n-nas. Ilahi-n-nas. Min sharri-l-waswasi-l-khannas...','Қул аъузу би-Робби-н-нос. Молики-н-нос. Илоҳи-н-нос. Мин шарри-л-васвоси-л-ханнос...','Qul auzu bi-Robbi-n-nos. Moliki-n-nos. Ilohi-n-nos. Min sharri-l-vasvosi-l-xannos...'],
+        ru:'Сура «Ан-Нас»: Скажи: «Прибегаю к защите Господа людей, Царя людей, Бога людей, от зла искусителя...» (Ахмад, Абу Дауд, Ат-Тирмизи, Ан-Насаи)',
+        en:'Surah An-Nas: Say, "I seek refuge in the Lord of mankind, the King of mankind, the God of mankind, from the evil of the whispering tempter..." (Ahmad, Abu Dawud, At-Tirmidhi, An-Nasa\'i)',
+        tj:'Сураи Нос: Бигӯ: «Ба Парвардигори мардум паноҳ мебарам, Подшоҳи мардум, Худои мардум, аз бадии васвасагари пинҳоншаванда...» (Аҳмад, Абу Довуд, Тирмизӣ, Насоӣ)',
+        uz:'Nos surasi: Ayt: \"Odamlarning Robbisiga sig\'inaman, odamlarning Podshohiga, odamlarning Xudosiga, vasvasachining yomonligidan...\" (Ahmad, Abu Dovud, Tirmiziy, Nasoiy)',
+      },
+    ],
+  },
+  {
+    icon:'🍽️',
+    name:'أدعية الطعام',
+    nameL:['Дуа перед едой','Dua Before Eating','Дуои пеш аз хӯрок','Ovqatdan oldingi dua'],
+    duas:[
+      {
+        ar:'بِسْمِ اللَّهِ',
+        translit:['Бисмиллях','Bismillah','Бисмиллоҳ','Bismilloh'],
+        ru:'С именем Аллаха.',
+        en:'In the name of Allah.',
+        tj:'Бо номи Аллоҳ.',
+        uz:'Allohning nomi bilan.',
+      },
+      {
+        ar:'اللَّهُمَّ بَارِكْ لَنَا فِيمَا رَزَقْتَنَا وَقِنَا عَذَابَ النَّارِ',
+        translit:['Аллахумма, барик ляна фи-ма разакта-на ва кы-на \'азаба-н-нар.','Allahumma, barik lana fi ma razaqtana wa qina \'adhaba-n-nar.','Аллоҳумма, барик лано фи мо разақтано ва қино азобан-нор.','Allohumma, barik lano fi mo razaqtano va qino azoban-nor.'],
+        ru:'О Аллах, благослови нам то, чем Ты нас наделил, и защити нас от наказания огнём.',
+        en:'O Allah, bless us in what You have provided for us and protect us from the punishment of the Fire.',
+        tj:'Эй Аллоҳ, дар он чи ки ба мо рӯзӣ додӣ баракат деҳ ва аз азоби оташ нигоҳ дор.',
+        uz:'Ey Alloh, bizga bergan rizqingda baraka ber va bizni do\'zax azobidan saqla.',
+      },
+    ],
+  },
+  {
+    icon:'🏠',
+    name:'أدعية الدخول والخروج',
+    nameL:['Вход/выход из дома','Entering & Leaving Home','Вуруд ва хуруҷ аз хона','Uyga kirish va chiqish'],
+    duas:[
+      {
+        ar:'بِسْمِ اللَّهِ تَوَكَّلْتُ عَلَى اللَّهِ وَلَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ',
+        translit:['Бисмиллях, таваккяльту \'аля-Ллахи, ва ля хауля ва ля куввата илля би-Лляхи.','Bismillah, tawakkaltu \'ala-Llahi, wa la hawla wa la quwwata illa bi-Llahi.','Бисмиллоҳ, таваккалту ало-Лллоҳи, ва ло ҳавла ва ло қуввата илло би-Лллоҳи.','Bismilloh, tavakkaltu alo-Lllohi, va lo havla va lo quvvata illo bi-Lllohi.'],
+        ru:'С именем Аллаха, я уповаю на Аллаха, и нет силы и мощи кроме как от Аллаха.',
+        en:'In the name of Allah, I put my trust in Allah, and there is no power or strength except with Allah.',
+        tj:'Бо номи Аллоҳ, ба Аллоҳ таваккул кардам, ва нест қувват ва тавон магар аз Аллоҳ.',
+        uz:'Allohning nomi bilan, men Allohga tayanaman, kuch-quvvat faqat Allohdandir.',
+      },
+      {
+        ar:'اللَّهُمَّ إِنِّي أَسْأَلُكَ خَيْرَ الْمَوْلَجِ وَخَيْرَ الْمَخْرَجِ',
+        translit:['Аллахумма, инни ас\'алю-кя хайра-ль-мауляджи ва хайра-ль-мяхраджи.','Allahumma, inni as\'aluka khayra-l-mawlaji wa khayra-l-makhraji.','Аллоҳумма, инни асалука хайра-л-мавлажи ва хайра-л-махражи.','Allohumma, inni asaluka xayra-l-mavlaji va xayra-l-maxraji.'],
+        ru:'О Аллах, прошу Тебя о благе при входе и благе при выходе.',
+        en:'O Allah, I ask You for good upon entering and good upon leaving.',
+        tj:'Эй Аллоҳ, аз Ту хайри вуруд ва хайри хуруҷро мехоҳам.',
+        uz:'Ey Alloh, kirishda yaxshilik va chiqishda yaxshilik so\'rayman.',
+      },
+    ],
+  },
+  {
+    icon:'😴',
+    name:'أدعية النوم',
+    nameL:['Дуа перед сном','Dua Before Sleep','Дуои пеш аз хоб','Uxlashdan oldingi dua'],
+    duas:[
+      {
+        ar:'بِاسْمِكَ اللَّهُمَّ أَمُوتُ وَأَحْيَا',
+        translit:['Би-сми-кя Аллахумма амуту ва ахйа.','Bismika Allahumma amutu wa ahya.','Бисмика Аллоҳумма амуту ва аҳё.','Bismika Allohumma amutu va ahyo.'],
+        ru:'С Твоим именем, о Аллах, я умираю и оживаю.',
+        en:'In Your name, O Allah, I die and live.',
+        tj:'Бо номи Ту, эй Аллоҳ, мемирам ва зиндаям.',
+        uz:'Sening noming bilan, ey Alloh, o\'laman va yashayman.',
+      },
+      {
+        ar:'اللَّهُمَّ قِنِي عَذَابَكَ يَوْمَ تَبْعَثُ عِبَادَكَ',
+        translit:['Аллахумма, кы-ни \'азаба-кя йаума таб\'асу \'ибада-кя.','Allahumma, qini \'adhabaka yawma tab\'athu \'ibadaka.','Аллоҳумма, қинӣ азобака явма табъасу ибодака.','Allohumma, qiniy azobaka yavma tabasu ibodaka.'],
+        ru:'О Аллах, защити меня от Твоего наказания в День, когда Ты воскресишь Твоих рабов.',
+        en:'O Allah, protect me from Your punishment on the Day You resurrect Your servants.',
+        tj:'Эй Аллоҳ, маро аз азоби Ту дар рӯзе ки бандагонатро бармехезонӣ нигоҳ дор.',
+        uz:'Ey Alloh, bandalaringni qayta tiriltiradigan kunda meni azobingdan saqla.',
+      },
+    ],
+  },
+  {
+    icon:'📿',
+    name:'الأذكار اليومية',
+    nameL:['Ежедневные зикры','Daily Dhikr','Зикрҳои ҳаррӯза','Kunlik zikrlar'],
+    duas:[
+      {
+        ar:'أَسْتَغْفِرُ اللَّهَ',
+        translit:['Астагфируллах','Astaghfirullah','Астағфируллоҳ','Astag\'firulloh'],
+        ru:'Прошу прощения у Аллаха.',
+        en:'I seek forgiveness from Allah.',
+        tj:'Аз Аллоҳ бахшоиш металабам.',
+        uz:'Allohdan kechirim so\'rayman.',
+      },
+      {
+        ar:'لَا إِلَهَ إِلَّا اللَّهُ',
+        translit:['Ля иляха илля-Ллах','La ilaha illa-Llah','Ло илоҳа илло-Лллоҳ','Lo iloha illo-Llloh'],
+        ru:'Нет божества, достойного поклонения, кроме Аллаха.',
+        en:'There is no god worthy of worship except Allah.',
+        tj:'Нест худое сазовори ибодат, ба ғайри Аллоҳ.',
+        uz:'Allohdan o\'zga ibodatga loyiq iloh yo\'q.',
+      },
+      {
+        ar:'سُبْحَانَ اللَّهِ',
+        translit:['Субханаллах','Subhanallah','Субҳоналлоҳ','Subhonalloh'],
+        ru:'Пречист Аллах.',
+        en:'Glory be to Allah.',
+        tj:'Пок аст Аллоҳ.',
+        uz:'Alloh pokdir.',
+      },
+      {
+        ar:'الْحَمْدُ لِلَّهِ',
+        translit:['Альхамду лиллях','Alhamdu lillah','Алҳамду лиллоҳ','Alhamdu lilloh'],
+        ru:'Хвала Аллаху.',
+        en:'All praise is due to Allah.',
+        tj:'Ситоиш барои Аллоҳ.',
+        uz:'Hamd Allohga xosdir.',
+      },
+      {
+        ar:'اللَّهُ أَكْبَرُ',
+        translit:['Аллаху Акбар','Allahu Akbar','Аллоҳу Акбар','Allohu Akbar'],
+        ru:'Аллах Велик.',
+        en:'Allah is the Greatest.',
+        tj:'Аллоҳ Бузургтарин аст.',
+        uz:'Alloh buyukdir.',
+      },
+      {
+        ar:'لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ',
+        translit:['Ля хауля ва ля куввата илля биллях','La hawla wa la quwwata illa billah','Ло ҳавла ва ло қуввата илло биллоҳ','Lo havla va lo quvvata illo billoh'],
+        ru:'Нет силы и мощи ни у кого, кроме Аллаха.',
+        en:'There is no power and no strength except with Allah.',
+        tj:'Нест қувват ва тавоное магар аз Аллоҳ.',
+        uz:'Kuch-quvvat faqat Allohdandir.',
+      },
+      {
+        ar:'اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ',
+        translit:['Аллахумма салли \'аля Мухаммад','Allahumma salli \'ala Muhammad','Аллоҳумма саллӣ ало Муҳаммад','Allohumma salli alo Muhammad'],
+        ru:'О Аллах, благослови Мухаммада ﷺ.',
+        en:'O Allah, send blessings upon Muhammad ﷺ.',
+        tj:'Эй Аллоҳ, бар Муҳаммад ﷺ дуруд фирист.',
+        uz:'Ey Alloh, Muhammadga ﷺ rahmat yubor.',
+      },
+      {
+        ar:'لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ، وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ',
+        translit:['Ля иляха илля-Ллаху вахдаху ля шарика лях, ляхуль-мульку ва ляхуль-хамд, ва хуа \'аля кулли шайин кадир.','La ilaha illa-Llahu wahdahu la sharika lahu, lahu-l-mulku wa lahu-l-hamdu wa hua \'ala kulli shay\'in qadir.','Ло илоҳа илло-Лллоҳу ваҳдаҳу ло шарика лаҳу, лаҳу-л-мулку ва лаҳу-л-ҳамд, ва ҳуа ало кулли шайин қодир.','Lo iloha illo-Lllohu vahdahu lo sharika lahu, lahu-l-mulku va lahu-l-hamd, va hua alo kulli shayin qodir.'],
+        ru:'Нет божества, кроме одного лишь Аллаха, у Которого нет сотоварища. Ему принадлежит власть, Ему хвала, и Он всё может.',
+        en:'There is no god but Allah alone, with no partner. To Him belongs dominion, to Him belongs praise, and He is able to do all things.',
+        tj:'Нест худое ба ғайри Аллоҳ, Ягона аст, шарике надорад. Мулк аз они Ӯст, ситоиш ба Ӯст, ва Ӯ бар ҳама чиз тавоност.',
+        uz:'Allohdan o\'zga iloh yo\'q, U yagonadir, sherigi yo\'qdir. Mulk Unga xosdir, hamd Unga xosdir, va U hamma narsaga qodirdir.',
+      },
+    ],
+  },
+  {
+    icon:'🆘',
+    name:'أذكار الشدائد',
+    nameL:['Зикры в трудные моменты','Dhikr for Difficult Times','Зикрҳо барои лаҳзаҳои сахт','Qiyin lahzalar uchun zikrlar'],
+    duas:[
+      {
+        ar:'سُبْحَانَ اللَّهِ وَبِحَمْدِهِ',
+        translit:['Субханаллахи ва бихамдих','Subhanallahi wa bihamdih','Субҳоналлоҳи ва биҳамдиҳ','Subhonallohi va bihamdih'],
+        ru:'Пречист Аллах, и хвала Ему. Эти слова — самые любимые Аллахом из всех слов.',
+        en:'Glory be to Allah, and praise be to Him. These are the words most beloved to Allah of all speech.',
+        tj:'Пок аст Аллоҳ ва ситоиш барои Ӯст. Ин калимот аз ҳама гуфтор назди Аллоҳ маҳбубтаранд.',
+        uz:'Alloh pokdir va hamd Unga xosdir. Bu so\'zlar Alloh nazdida eng sevimli so\'zlardir.',
+      },
+      {
+        ar:'سُبْحَانَ اللَّهِ وَبِحَمْدِهِ، سُبْحَانَ اللَّهِ الْعَظِيمِ',
+        translit:['Субханаллахи ва бихамдих, Субханаллахиль-\'Азим','Subhanallahi wa bihamdih, Subhanallahi-l-\'Azim','Субҳоналлоҳи ва биҳамдиҳ, Субҳоналлоҳи-л-Азим','Subhonallohi va bihamdih, Subhonallohi-l-Azim'],
+        ru:'Пречист Аллах, и хвала Ему. Пречист Аллах Великий. Эти слова тяжелы на Весах и любимы Милостивым.',
+        en:'Glory be to Allah, and praise be to Him. Glory be to Allah, the Mighty. These words are heavy on the Scale and beloved to the Most Merciful.',
+        tj:'Пок аст Аллоҳ ва ситоиш барои Ӯст. Пок аст Аллоҳи Бузург. Ин калимот дар Тарозу вазнинанд ва назди Раҳмон маҳбубанд.',
+        uz:'Alloh pokdir va hamd Unga xosdir. Buyuk Alloh pokdir. Bu so\'zlar Tarozida og\'ir va Rahmonga sevimlidir.',
+      },
+      {
+        ar:'لَا إِلَهَ إِلَّا أَنْتَ سُبْحَانَكَ إِنِّي كُنْتُ مِنَ الظَّالِمِينَ',
+        translit:['Ля иляха илля Анта, субханака, инни кунту мина-з-залимин','La ilaha illa Anta, subhanaka, inni kuntu mina-z-zalimin','Ло илоҳа илло Анта, субҳонака, инни кунту мина-з-золимин','Lo iloha illo Anta, subhonaka, inni kuntu mina-z-zolimin'],
+        ru:'Нет божества, кроме Тебя! Пречист Ты! Поистине, я был одним из несправедливых к себе. (Дуа пророка Юнуса, мир ему, в чреве кита — сура «Аль-Анбия», 21:87)',
+        en:'There is no god but You! Glory be to You! Indeed, I was among the wrongdoers. (Dua of Prophet Yunus, peace be upon him, in the belly of the whale — Surah Al-Anbiya, 21:87)',
+        tj:'Нест худое ба ғайри Ту! Пок ҳастӣ Ту! Ба дурустӣ, ман аз ситамкорон будам. (Дуои Пайғамбар Юнус, дар шиками моҳӣ — Сураи Анбиё, 21:87)',
+        uz:'Sendan o\'zga iloh yo\'q! Sen pokdirsan! Darhaqiqat, men o\'zimga zulm qilganlardan bo\'ldim. (Yunus alayhissalomning baliq qornidagi duosi — Anbiyo surasi, 21:87)',
+      },
+      {
+        ar:'حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيلُ',
+        translit:['Хасбунал-Лаху ва ни\'маль-вакиль','Hasbuna-Llahu wa ni\'ma-l-wakil','Ҳасбуна-Лллоҳу ва нима-л-вакил','Hasbuna-Lllohu va nima-l-vakil'],
+        count:'при тревоге',
+        ru:'Достаточно нам Аллаха, и Он лучший Покровитель.',
+        en:'Allah is sufficient for us, and He is the best Disposer of affairs.',
+        tj:'Аллоҳ моро кофист, ва Ӯ беҳтарин Вокил аст.',
+        uz:'Alloh bizga kifoya qiladi, U eng yaxshi himoyachidir.',
+      },
+      {
+        ar:'يَا مُقَلِّبَ الْقُلُوبِ ثَبِّتْ قَلْبِي عَلَى دِينِكَ',
+        translit:['Йа Мукаллибаль-кулюб, саббит кальби \'аля диник','Ya Muqalliba-l-qulub, thabbit qalbi \'ala dinik','Ё Муқаллиба-л-қулуб, саббит қалбӣ ало диник','Yo Muqalliba-l-qulub, sabbit qalbiy alo dinik'],
+        count:'для укрепления сердца',
+        ru:'О Изменяющий сердца, укрепи моё сердце в Твоей религии. (Часто повторял Пророк ﷺ — ат-Тирмизи)',
+        en:'O Changer of hearts, make my heart firm upon Your religion. (Often repeated by the Prophet ﷺ — At-Tirmidhi)',
+        tj:'Эй Дилгардон, дили маро бар дини Ту устувор гардон. (Пайғамбар ﷺ зуд-зуд мегуфт — Тирмизӣ)',
+        uz:'Ey qalblarni o\'giruvchi, qalbimni diningda mustahkam qilgin. (Payg\'ambar ﷺ tez-tez aytardi — Tirmiziy)',
+      },
+      {
+        ar:'اللَّهُمَّ اغْفِرْ لِي وَارْحَمْنِي وَأَلْحِقْنِي بِالرَّفِيقِ الْأَعْلَى',
+        translit:['Аллахумма-гфир ли вархамни ва альхикни бир-рафикиль-а\'ля','Allahumma-ghfir li warhamni wa alhiqni bi-r-rafiqi-l-\'a\'la','Аллоҳумма-ғфир ли вараҳамнӣ ва алҳиқнӣ би-р-рафиқи-л-аъло','Allohumma-g\'fir li varahamniy va alhiqniy bi-r-rafiqi-l-a\'lo'],
+        ru:'О Аллах, прости меня, помилуй меня и присоедини меня к высшему обществу! (Последние слова Пророка ﷺ перед смертью — Бухари, Муслим)',
+        en:'O Allah, forgive me, have mercy on me, and join me with the highest companions! (The last words of the Prophet ﷺ before his death — Bukhari, Muslim)',
+        tj:'Эй Аллоҳ, маро биёмурз, ба ман раҳм кун ва маро ба ҳамроҳони олӣ мулҳақ гардон! (Калимоти охирини Пайғамбар ﷺ пеш аз вафот — Бухорӣ, Муслим)',
+        uz:'Ey Alloh, meni kechirgin, menga rahm qilgin va meni eng oliy hamrohlarga qo\'shgin! (Payg\'ambarning ﷺ vafotidan oldingi so\'nggi so\'zlari — Buxoriy, Muslim)',
+      },
+      {
+        ar:'رَبِّ اجْعَلْنِي مُقِيمَ الصَّلَاةِ وَمِنْ ذُرِّيَّتِي',
+        translit:['Рабби-дж\'альни мукимас-саляти ва мин зуррийяти','Rabbi-j\'alni muqima-s-salati wa min dhurriyyati','Раббӣ-жъалнӣ муқима-с-салоти ва мин зурриётӣ','Robbiy-jalni muqima-s-saloti va min zurriyotiy'],
+        ru:'Господь мой, сделай меня и моё потомство теми, кто совершает намаз постоянно. (Сура «Ибрахим», 14:40)',
+        en:'My Lord, make me one who maintains prayer, and [many] from my descendants. (Surah Ibrahim, 14:40)',
+        tj:'Парвардигорам, маро ва насли маро аз касоне гардон, ки намозро бардавом мехонанд. (Сураи Иброҳим, 14:40)',
+        uz:'Robbim, meni va zurriyotimdan ba\'zilarini namozni doimo o\'qiydiganlardan qilgin. (Ibrohim surasi, 14:40)',
+      },
+    ],
+  },
+];
+
+// ══════════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════════
+const S = {
+  dhikr:0, count:0, cycles:0, target:33,
+  total: parseInt(localStorage.getItem('tasb_total')||'0'),
+  session:0,
+  openCatIndex: null,
+};
+
+// ══════════════════════════════════════════════════════
+//  DOM
+// ══════════════════════════════════════════════════════
+const R=86, CIRC=2*Math.PI*R;
+const cProg=document.getElementById('cProg');
+cProg.style.strokeDasharray=CIRC;
+
+function setArc(pct){cProg.style.strokeDashoffset=CIRC*(1-Math.min(pct,1));}
+
+// Dhikr selector modal
+const dhikrModalOverlay=document.getElementById('dhikrModalOverlay');
+const dhikrModalList=document.getElementById('dhikrModalList');
+const dhikrSelectBtn=document.getElementById('dhikrSelectBtn');
+
+function buildDhikrModal(){
+  dhikrModalList.innerHTML='';
+  DHIKR.forEach((d,i)=>{
+    const item=document.createElement('div');
+    item.className='dhikr-modal-item'+(i===S.dhikr?' active':'');
+    item.style.display='flex';
+    item.style.alignItems='center';
+    item.style.justifyContent='space-between';
+    item.style.gap='10px';
+    const nameHtml = d.short[langIdx] ? `<div class="dhikr-modal-item-name">${d.short[langIdx]}</div>` : '';
+    item.innerHTML=`<div style="flex:1;min-width:0">${nameHtml}<div class="dhikr-modal-item-ar">${d.ar}</div></div>
+      <button class="remind-btn" data-remind-type="dhikr" data-remind-index="${i}" style="flex-shrink:0"></button>`;
+    item.onclick=(e)=>{ if(e.target.closest('.remind-btn')) return; selectDhikr(i); closeDhikrModal(); };
+    item.querySelector('.remind-btn').onclick=(e)=>{
+      e.stopPropagation();
+      openReminderModal('dhikr', i, d.short[langIdx]||d.ar);
+    };
+    dhikrModalList.appendChild(item);
+  });
+  refreshReminderButtons();
+}
+function openDhikrModal(){
+  buildDhikrModal();
+  dhikrModalOverlay.classList.add('show');
+}
+function closeDhikrModal(){
+  dhikrModalOverlay.classList.remove('show');
+}
+dhikrSelectBtn.onclick=openDhikrModal;
+document.getElementById('dhikrModalClose').onclick=closeDhikrModal;
+dhikrModalOverlay.onclick=(e)=>{ if(e.target===dhikrModalOverlay) closeDhikrModal(); };
+
+// Telegram channels list
+const CHANNELS = [
+  { name:'Тоҷикӣ',   sub:'Дарси Қуръон бо забони тоҷикӣ',     url:'https://t.me/' },
+  { name:'Русский',  sub:'Уроки Корана на русском языке',     url:'https://t.me/' },
+  // English channel — добавим сюда, когда найдём
+];
+const BANNER_TEXT = [
+  { title:'Изучайте Коран с нами',  sub:'Telegram-канал · подпишитесь →' },  // RU
+  { title:'Learn Quran with us',    sub:'Telegram channel · subscribe →' },  // EN
+  { title:'Қуръонро бо мо омӯзед',  sub:'Канали Telegram · обуна шавед →' }, // TJ
+  { title:'Qur\'onni biz bilan o\'rganing', sub:'Telegram kanal · obuna bo\'ling →' }, // UZ
+];
+const promoBanner=document.getElementById('promoBanner');
+const channelModalOverlay=document.getElementById('channelModalOverlay');
+const channelModalList=document.getElementById('channelModalList');
+
+function updatePromoBanner(){
+  const t = BANNER_TEXT[langIdx];
+  document.getElementById('promoTitle').textContent = t.title;
+  document.getElementById('promoSub').textContent = t.sub;
+}
+function buildChannelModal(){
+  channelModalList.innerHTML='';
+  CHANNELS.forEach(c=>{
+    const item=document.createElement('a');
+    item.className='dhikr-modal-item';
+    item.href=c.url;
+    item.target='_blank';
+    item.rel='noopener';
+    item.innerHTML=`<div class="dhikr-modal-item-name" style="direction:ltr;text-align:left">${c.name}</div><div class="dhikr-modal-item-ar" style="font-family:'Inter',sans-serif;font-size:14px;direction:ltr;text-align:left">${c.sub}</div>`;
+    item.onclick=closeChannelModal;
+    channelModalList.appendChild(item);
+  });
+}
+function openChannelModal(){
+  buildChannelModal();
+  channelModalOverlay.classList.add('show');
+}
+function closeChannelModal(){
+  channelModalOverlay.classList.remove('show');
+}
+promoBanner.onclick=openChannelModal;
+document.getElementById('channelModalClose').onclick=closeChannelModal;
+channelModalOverlay.onclick=(e)=>{ if(e.target===channelModalOverlay) closeChannelModal(); };
+
+// Privacy policy modal
+const privacyModalOverlay=document.getElementById('privacyModalOverlay');
+document.getElementById('privacyBtn').onclick=()=>{
+  privacyModalOverlay.classList.add('show');
+};
+document.getElementById('privacyModalClose').onclick=()=>{
+  privacyModalOverlay.classList.remove('show');
+};
+privacyModalOverlay.onclick=(e)=>{ if(e.target===privacyModalOverlay) privacyModalOverlay.classList.remove('show'); };
+
+// Build target pills
+const targetRow=document.getElementById('targetRow');
+TARGETS.forEach(t=>{
+  const p=document.createElement('button');
+  p.className='tpill'+(t===S.target?' active':'');
+  p.textContent=t;
+  p.onclick=()=>selectTarget(t);
+  targetRow.appendChild(p);
+});
+
+// Build dua categories
+function buildDuaCats(){
+  const el=document.getElementById('duaCats');
+  el.innerHTML='';
+  DUA_CATS.forEach((cat,i)=>{
+    const c=document.createElement('div');
+    c.className='cat-card';
+    c.innerHTML=`
+      <div class="cat-icon">${cat.icon}</div>
+      <div class="cat-info">
+        <div class="cat-name">${cat.name}</div>
+        <div class="cat-count">${cat.nameL[langIdx]} · ${cat.duas.length} ${['дуа','duas','дуо','dua'][langIdx]}</div>
+      </div>
+      <button class="remind-btn" data-remind-type="cat" data-remind-index="${i}"></button>
+      <div class="cat-arr">›</div>`;
+    c.onclick=(e)=>{ if(e.target.closest('.remind-btn')) return; openCat(i); };
+    c.querySelector('.remind-btn').onclick=(e)=>{
+      e.stopPropagation();
+      openReminderModal('cat', i, cat.nameL[langIdx]);
+    };
+    el.appendChild(c);
+  });
+  refreshReminderButtons();
+}
+
+function openCat(i){
+  S.openCatIndex = i;
+  const cat=DUA_CATS[i];
+  document.getElementById('duaCats').style.display='none';
+  const det=document.getElementById('duaDetail');
+  det.style.display='flex';
+  document.getElementById('duaCatTitle').textContent=cat.nameL[langIdx];
+  const list=document.getElementById('duaList');
+  list.innerHTML='';
+  const translitLbl=['Транслитерация','Transliteration','Транслитератсия','Transliteratsiya'][langIdx];
+  const transLbl=['Перевод','Translation','Тарҷума','Tarjima'][langIdx];
+  cat.duas.forEach((d,j)=>{
+    const langKey=['ru','en','tj','uz'][langIdx];
+    const card=document.createElement('div');
+    card.className='dua-card';
+    const countHtml = d.count ? `<div class="dua-count">${d.count}</div>` : '';
+    const translitText = Array.isArray(d.translit) ? d.translit[langIdx] : d.translit;
+    const translitHtml = translitText ? `
+      <div class="dua-lang">${translitLbl}</div>
+      <div class="dua-translit">${translitText}</div>` : '';
+    card.innerHTML=`
+      <div class="dua-num">DUA ${j+1}</div>
+      <div class="dua-ar">${d.ar}</div>
+      ${countHtml}
+      ${translitHtml}
+      <div class="dua-lang">${transLbl}</div>
+      <div class="dua-trans">${d[langKey]||d.ru}</div>`;
+    list.appendChild(card);
+  });
+}
+
+document.getElementById('backBtn').onclick=()=>{
+  S.openCatIndex = null;
+  document.getElementById('duaCats').style.display='flex';
+  document.getElementById('duaDetail').style.display='none';
+};
+
+// ── Render ──
+function render(){
+  const d=DHIKR[S.dhikr];
+  document.getElementById('dArabic').textContent=d.ar;
+  document.getElementById('dTrans').textContent=d.trans[langIdx];
+  document.getElementById('dhikrSelectLabel').textContent=d.short[langIdx]||d.ar;
+  document.getElementById('cNum').textContent=S.count;
+  document.getElementById('cOf').textContent=`/ ${S.target}`;
+  document.getElementById('cRounds').textContent=S.cycles>0?`× ${S.cycles}`:'';
+  document.getElementById('stTotal').textContent=S.total;
+  document.getElementById('stRounds').textContent=S.cycles;
+  document.getElementById('stSess').textContent=S.session;
+  setArc(S.count/S.target);
+  // UI strings
+  Object.keys(UI).forEach(k=>{
+    const el=document.getElementById(k);
+    if(el) el.textContent=UI[k][langIdx];
+  });
+  updatePromoBanner();
+  buildDuaCats();
+  if(S.openCatIndex !== null){
+    openCat(S.openCatIndex);
+  }
+}
+
+function selectDhikr(i){
+  S.dhikr=i; S.count=0; S.cycles=0;
+  const d=DHIKR[i];
+  if(d.defaultTarget && TARGETS.includes(d.defaultTarget)){
+    S.target=d.defaultTarget;
+  }
+  document.querySelectorAll('.tpill').forEach(p=>p.classList.toggle('active',parseInt(p.textContent)===S.target));
+  render();
+}
+function selectTarget(t){
+  S.target=t; S.count=0; S.cycles=0;
+  document.querySelectorAll('.tpill').forEach(p=>p.classList.toggle('active',parseInt(p.textContent)===t));
+  render();
+}
+
+// ── Tap ──
+// ── Click sound (Web Audio API, no files needed) ──
+let soundOn = localStorage.getItem('tasb_sound') === 'on';
+let audioCtx = null;
+
+function ensureAudioCtx(){
+  if(!audioCtx){
+    audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  }
+  // Mobile browsers/WebViews (incl. TWA/PWABuilder Android wrapper) suspend
+  // AudioContext until explicitly resumed inside a user gesture.
+  if(audioCtx.state === 'suspended'){
+    audioCtx.resume();
+  }
+  return audioCtx;
+}
+
+function playClickSound(){
+  if(!soundOn) return;
+  try{
+    const ctx = ensureAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(800, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.05);
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.08);
+  }catch(e){}
+}
+const soundBtn=document.getElementById('soundBtn');
+function updateSoundBtn(){
+  soundBtn.textContent = soundOn ? '🔊' : '🔇';
+  soundBtn.classList.toggle('on', soundOn);
+}
+soundBtn.onclick=()=>{
+  soundOn = !soundOn;
+  localStorage.setItem('tasb_sound', soundOn ? 'on' : 'off');
+  updateSoundBtn();
+  if(soundOn){
+    ensureAudioCtx();   // unlock immediately on this user gesture
+    playClickSound();
+  }
+};
+updateSoundBtn();
+
+function bump(){
+  const n=document.getElementById('cNum');
+  n.classList.add('bump');
+  setTimeout(()=>n.classList.remove('bump'),120);
+  const r=document.createElement('div');
+  r.className='ripple-ring';
+  document.getElementById('cwrap').appendChild(r);
+  setTimeout(()=>r.remove(),500);
+  if(navigator.vibrate) navigator.vibrate(18);
+  playClickSound();
+}
+function increment(){
+  S.count++; S.session++; S.total++;
+  localStorage.setItem('tasb_total',S.total);
+  bump();
+  if(S.count>=S.target){
+    S.cycles++; S.count=0; render();
+    const msgs=['Раунд завершён!','Round complete!','Давра ба поён расид!','Davra tugadi!'];
+    document.getElementById('toastS').textContent=`${S.cycles} × ${DHIKR[S.dhikr].short[langIdx]} — ${msgs[langIdx]}`;
+    document.getElementById('toast').classList.add('show');
+  } else { render(); }
+}
+
+document.getElementById('tapBtn').addEventListener('click',increment);
+document.addEventListener('keydown',e=>{if(e.code==='Space'||e.code==='Enter'){e.preventDefault();increment();}});
+document.getElementById('undoBtn').onclick=()=>{
+  if(S.count>0){S.count--;S.session=Math.max(0,S.session-1);S.total=Math.max(0,S.total-1);localStorage.setItem('tasb_total',S.total);render();}
+};
+document.getElementById('resetBtn').onclick=()=>{S.count=0;S.cycles=0;S.session=0;render();};
+document.getElementById('toastOk').onclick=()=>document.getElementById('toast').classList.remove('show');
+
+// ── Nav ──
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  btn.classList.add('active');
+  S.openCatIndex = null;
+  if(id==='dua'){
+    document.getElementById('duaCats').style.display='flex';
+    document.getElementById('duaDetail').style.display='none';
+  }
+}
+
+// ── Language toggle ──
+document.getElementById('langBtn').onclick=()=>{
+  langIdx=(langIdx+1)%LANGS.length;
+  document.getElementById('langBtn').textContent=LANGS[langIdx];
+  render();
+};
+
+// ══════════════════════════════════════════════════════
+//  REMINDERS SYSTEM
+// ══════════════════════════════════════════════════════
+// Reminders are stored in localStorage as an array of:
+// { id, type: 'cat'|'dhikr', refIndex, label, hour, minute, enabled }
+// We check every 30s while the app is open and fire a notification
+// when the current time matches a reminder that hasn't fired today.
+
+let swRegistration = null;
+try {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').then(reg => {
+      swRegistration = reg;
+    }).catch(() => {});
+  }
+} catch(e) {}
+
+function loadReminders(){
+  try { return JSON.parse(localStorage.getItem('tasb_reminders') || '[]'); }
+  catch(e){ return []; }
+}
+function saveReminders(list){
+  localStorage.setItem('tasb_reminders', JSON.stringify(list));
+}
+
+const REMINDER_TXT = {
+  title: ['Напоминание о зикре','Dhikr Reminder','Ёдоварии зикр','Zikr eslatmasi'],
+  bodyPrefix: ['Время для:','Time for:','Вақти барои:','Vaqti uchun:'],
+  setBtn: ['🔔 Напомнить','🔔 Remind','🔔 Ёдоварӣ','🔔 Eslatma'],
+  setBtnOn: ['🔔 Изменить','🔔 Edit','🔔 Тағйир','🔔 Tahrirlash'],
+  modalTitle: ['Время напоминания','Reminder time','Вақти ёдоварӣ','Eslatma vaqti'],
+  saveBtn: ['Сохранить','Save','Захира кардан','Saqlash'],
+  removeBtn: ['Удалить напоминание','Remove reminder','Нест кардани ёдоварӣ','Eslatmani olib tashlash'],
+  permissionNeeded: ['Разрешите уведомления в настройках телефона','Please allow notifications in phone settings','Иҷозати огоҳиномаҳоро дар танзимот диҳед','Telefon sozlamalarida bildirishnomalarga ruxsat bering'],
+};
+
+function notificationsSupported(){
+  return 'Notification' in window;
+}
+async function ensureNotificationPermission(){
+  if(!notificationsSupported()) return false;
+  if(Notification.permission === 'granted') return true;
+  if(Notification.permission === 'denied') return false;
+  const result = await Notification.requestPermission();
+  return result === 'granted';
+}
+function fireNotification(label){
+  const title = REMINDER_TXT.title[langIdx];
+  const body = REMINDER_TXT.bodyPrefix[langIdx] + ' ' + label;
+  if(swRegistration && swRegistration.active){
+    swRegistration.active.postMessage({ type:'SHOW_NOTIFICATION', title, body, tag:'zikr-reminder' });
+  } else if(notificationsSupported() && Notification.permission === 'granted'){
+    try { new Notification(title, { body }); } catch(e){}
+  }
+}
+
+function checkReminders(){
+  try {
+    const list = loadReminders();
+    if(list.length === 0) return;
+    const now = new Date();
+    const hh = now.getHours();
+    const mm = now.getMinutes();
+    const todayKey = now.toISOString().slice(0,10);
+    let changed = false;
+    list.forEach(r=>{
+      if(!r.enabled) return;
+      if(r.hour===hh && r.minute===mm && r.lastFired!==todayKey){
+        fireNotification(r.label);
+        r.lastFired = todayKey;
+        changed = true;
+      }
+    });
+    if(changed) saveReminders(list);
+  } catch(e) {}
+}
+setInterval(checkReminders, 30000);
+checkReminders();
+
+// Reminder modal UI
+function getReminderFor(type, refIndex){
+  return loadReminders().find(r=>r.type===type && r.refIndex===refIndex);
+}
+function openReminderModal(type, refIndex, label){
+  const existing = getReminderFor(type, refIndex);
+  const overlay = document.createElement('div');
+  overlay.className = 'dhikr-modal-overlay show';
+  const hourVal = existing ? existing.hour : 7;
+  const minVal = existing ? existing.minute : 0;
+  overlay.innerHTML = `
+    <div class="dhikr-modal">
+      <div class="dhikr-modal-header">
+        <span>${REMINDER_TXT.modalTitle[langIdx]}</span>
+        <button class="dhikr-modal-close" id="remModalClose">✕</button>
+      </div>
+      <div class="dhikr-modal-list" style="padding:20px;text-align:center">
+        <div style="font-size:14px;color:#cfcac0;margin-bottom:16px">${label}</div>
+        <div style="display:flex;justify-content:center;gap:10px;align-items:center;margin-bottom:20px">
+          <input type="number" id="remHour" min="0" max="23" value="${hourVal}" style="width:64px;padding:10px;text-align:center;font-size:20px;background:#1c2128;color:#e8d5a3;border:1px solid #30363d;border-radius:8px">
+          <span style="color:#8b949e;font-size:20px">:</span>
+          <input type="number" id="remMin" min="0" max="59" value="${String(minVal).padStart(2,'0')}" style="width:64px;padding:10px;text-align:center;font-size:20px;background:#1c2128;color:#e8d5a3;border:1px solid #30363d;border-radius:8px">
+        </div>
+        <button id="remSave" style="width:100%;padding:12px;background:#c9a84c;color:#0d1117;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:10px">${REMINDER_TXT.saveBtn[langIdx]}</button>
+        ${existing ? `<button id="remDelete" style="width:100%;padding:12px;background:transparent;color:#f85149;border:1px solid #f85149;border-radius:10px;font-size:13px;cursor:pointer">${REMINDER_TXT.removeBtn[langIdx]}</button>` : ''}
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  const close = ()=> overlay.remove();
+  overlay.querySelector('#remModalClose').onclick = close;
+  overlay.onclick = (e)=>{ if(e.target===overlay) close(); };
+
+  overlay.querySelector('#remSave').onclick = async ()=>{
+    const granted = await ensureNotificationPermission();
+    if(!granted){
+      alert(REMINDER_TXT.permissionNeeded[langIdx]);
+    }
+    const hour = Math.max(0, Math.min(23, parseInt(overlay.querySelector('#remHour').value)||0));
+    const minute = Math.max(0, Math.min(59, parseInt(overlay.querySelector('#remMin').value)||0));
+    let list = loadReminders();
+    list = list.filter(r=>!(r.type===type && r.refIndex===refIndex));
+    list.push({ id: type+'-'+refIndex, type, refIndex, label, hour, minute, enabled:true, lastFired:null });
+    saveReminders(list);
+    refreshReminderButtons();
+    close();
+  };
+
+  const delBtn = overlay.querySelector('#remDelete');
+  if(delBtn){
+    delBtn.onclick = ()=>{
+      let list = loadReminders();
+      list = list.filter(r=>!(r.type===type && r.refIndex===refIndex));
+      saveReminders(list);
+      refreshReminderButtons();
+      close();
+    };
+  }
+}
+
+function refreshReminderButtons(){
+  document.querySelectorAll('[data-remind-type]').forEach(btn=>{
+    const type = btn.dataset.remindType;
+    const refIndex = parseInt(btn.dataset.remindIndex);
+    const existing = getReminderFor(type, refIndex);
+    if(existing){
+      btn.textContent = REMINDER_TXT.setBtnOn[langIdx] + ` (${String(existing.hour).padStart(2,'0')}:${String(existing.minute).padStart(2,'0')})`;
+      btn.classList.add('on');
+    } else {
+      btn.textContent = REMINDER_TXT.setBtn[langIdx];
+      btn.classList.remove('on');
+    }
+  });
+}
+
+render();
+</script>
+</body>
+</html>
